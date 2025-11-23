@@ -109,6 +109,11 @@ line BLUE
 # ----------------------------
 # Set environment for Steam Proton
 # ----------------------------
+# Enable Proton logging for debugging
+export PROTON_LOG=1
+export PROTON_LOG_DIR="${PROTON_LOG_DIR:-/home/container/logs}"
+mkdir -p "$PROTON_LOG_DIR"
+
 # Ensure a sane XDG_RUNTIME_DIR for services that rely on it
 if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
     export XDG_RUNTIME_DIR="/tmp/xdg-runtime-dir"
