@@ -140,17 +140,12 @@ if [ -n "${STEAM_APPID:-}" ]; then
         export WINEPREFIX
         msg GREEN "WINEPREFIX set to $WINEPREFIX"
 
-        # Ensure XDG_CONFIG_HOME is defined and protonfixes config directory exists.
-        # ProtonFixes expects "$HOME/.config/protonfixes" by default; create it
-        # here so ProtonFixes doesn't abort with a missing parent directory.
+        # Ensure XDG_CONFIG_HOME is defined for Wine/Proton
         if [ -z "${XDG_CONFIG_HOME:-}" ]; then
             export XDG_CONFIG_HOME="$HOME/.config"
         fi
-        # Create parent and protonfixes dir if absent. Be tolerant for root/non-root users.
-        mkdir -p "$XDG_CONFIG_HOME/protonfixes" 2>/dev/null || true
-        # Ensure basic permissions so the runtime user can write to it.
+        mkdir -p "$XDG_CONFIG_HOME" 2>/dev/null || true
         chmod 700 "$XDG_CONFIG_HOME" 2>/dev/null || true
-        chmod 700 "$XDG_CONFIG_HOME/protonfixes" 2>/dev/null || true
     fi
 
     # If ProtonGE is installed system-wide under /opt/ProtonGE, create a
@@ -341,15 +336,6 @@ is_valid_steam_dir() {
     return 1
 }
 
-if [ -n "${PROTONTRICKS_RUN:-}" ]; then
-    # protontricks support has been removed from this image. The build no longer
-    # installs or exposes protontricks. If you need to run winetricks-like
-    # actions, run them manually on your host or in a different image that
-    # includes protontricks. We intentionally do not attempt any automatic
-    # installations here to avoid surprising changes to user prefixes.
-    msg YELLOW "PROTONTRICKS_RUN is set but protontricks support has been removed from this image; skipping."
-fi
-
 # ----------------------------
 # Winetricks runtime installation (into the per-app WINEPREFIX)
 # ----------------------------
@@ -403,4 +389,4 @@ MODIFIED_STARTUP=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g')
 msg CYAN ":/home/container$ $MODIFIED_STARTUP"
 
 # Use exec to replace shell with the startup command. Quote carefully.
-exec bash -lc "$MODIFIED_STARTUP"
+exec bash -c "$MODIFIED_STARTUP"
