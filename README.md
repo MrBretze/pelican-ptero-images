@@ -71,9 +71,8 @@ periodically to ensure dependencies are always up-to-date.
 | nodejs:16 | `ghcr.io/goover/nodejs:16` | ✅ | ✅ |
 | nodejs:18 | `ghcr.io/goover/nodejs:18` | ✅ | ✅ |
 | nodejs:20 | `ghcr.io/goover/nodejs:20` | ✅ | ✅ |
-| nodejs:21 | `ghcr.io/goover/nodejs:21` | ✅ | ✅ |
 | nodejs:22 | `ghcr.io/goover/nodejs:22` | ✅ | ✅ |
-| nodejs:23 | `ghcr.io/goover/nodejs:23` | ✅ | ✅ |
+| nodejs:24 | `ghcr.io/goover/nodejs:24` | ✅ | ✅ |
 
 ---
 
@@ -112,6 +111,8 @@ periodically to ensure dependencies are always up-to-date.
 | go:1.20 | `ghcr.io/goover/go:1.20` | ✅ | ✅ |
 | go:1.21 | `ghcr.io/goover/go:1.21` | ✅ | ✅ |
 | go:1.22 | `ghcr.io/goover/go:1.22` | ✅ | ✅ |
+| go:1.23 | `ghcr.io/goover/go:1.23` | ✅ | ✅ |
+| go:1.24 | `ghcr.io/goover/go:1.24` | ✅ | ✅ |
 
 ---
 
@@ -143,6 +144,9 @@ periodically to ensure dependencies are always up-to-date.
 | dotnet:8-sdk | `ghcr.io/goover/dotnet:8-sdk` | ✅ | ❌ |
 | dotnet:9 | `ghcr.io/goover/dotnet:9` | ✅ | ❌ |
 | dotnet:9-sdk | `ghcr.io/goover/dotnet:9-sdk` | ✅ | ❌ |
+| dotnet:3.1 | `ghcr.io/goover/dotnet:3.1` | ✅ | ❌ |
+| dotnet:5 | `ghcr.io/goover/dotnet:5` | ✅ | ❌ |
+| dotnet:10 | `ghcr.io/goover/dotnet:10` | ✅ | ❌ |
 
 ---
 
