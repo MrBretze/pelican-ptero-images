@@ -456,6 +456,10 @@ periodically to ensure dependencies are always up-to-date.
 
 ## <a name="game-specific"></a>➡️ Game Specific
 
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/games` | [![build games](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/games.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/games.yml) | Game Server Images |
+
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
 | games:aloft | `ghcr.io/goover/games:aloft` | ✅ | ❌ | Aloft Game Server |
@@ -474,6 +478,10 @@ periodically to ensure dependencies are always up-to-date.
 
 # <a name="bot-images"></a>🤖 Bot Images
 
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/bots` | [![build bots](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/bots.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/bots.yml) | Discord/Twitch Bot Images |
+
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
 | bots:nodemongo | `ghcr.io/goover/bots:nodemongo` | ✅ | ✅ | Node.js + MongoDB 8 |
@@ -485,6 +493,10 @@ periodically to ensure dependencies are always up-to-date.
 
 # <a name="application-images"></a>📱 Application Images
 
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/apps` | [![build apps](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/apps.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/apps.yml) | Application Images |
+
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
 | apps:discordpush | `ghcr.io/goover/apps:discordpush` | ✅ | ✅ | Discord Push Notifications |
@@ -494,14 +506,22 @@ periodically to ensure dependencies are always up-to-date.
 
 # <a name="distribution-images"></a>🐧 Distribution Images
 
-## ➡️ Alpine
+## <a name="alpine-distro"></a>➡️ Alpine
+
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/distros` | [![build alpine](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/distros-alpine.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/distros-alpine.yml) | Alpine Linux Base Images |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
 | distros:alpine_latest | `ghcr.io/goover/distros:alpine_latest` | ✅ | ✅ |
 | distros:alpine_edge | `ghcr.io/goover/distros:alpine_edge` | ✅ | ✅ |
 
-## ➡️ Debian
+## <a name="debian-distro"></a>➡️ Debian
+
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/distros` | [![build debian](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/distros-debian.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/distros-debian.yml) | Debian Linux Base Images |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -509,7 +529,11 @@ periodically to ensure dependencies are always up-to-date.
 | distros:debian_12 | `ghcr.io/goover/distros:debian_12` | ✅ | ✅ |
 | distros:debian_13 | `ghcr.io/goover/distros:debian_13` | ✅ | ✅ |
 
-## ➡️ Ubuntu
+## <a name="ubuntu-distro"></a>➡️ Ubuntu
+
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/distros` | [![build ubuntu](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/distros-ubuntu.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/distros-ubuntu.yml) | Ubuntu Linux Base Images |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -521,6 +545,10 @@ periodically to ensure dependencies are always up-to-date.
 ---
 
 # <a name="installer-images"></a>📦 Installer Images
+
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/installers` | [![build installers](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/installers.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/installers.yml) | Installer Images |
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
@@ -536,6 +564,10 @@ periodically to ensure dependencies are always up-to-date.
 
 # <a name="alpine-images"></a>🏔️ Alpine Images
 
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/alpine` | [![build alpine](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/emu-wine-alpine.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/emu-wine-alpine.yml) | Alpine Specialty Images |
+
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
 | alpine:nodejs18 | `ghcr.io/goover/alpine:nodejs18` | ✅ | ✅ | Alpine + Node.js 18 |
@@ -546,6 +578,10 @@ periodically to ensure dependencies are always up-to-date.
 
 # <a name="voice-images"></a>🎙️ Voice Images
 
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/voice` | [![build voice](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/voice.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/voice.yml) | Voice Server Images |
+
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
 | voice:teaspeak | `ghcr.io/goover/voice:teaspeak` | ✅ | ✅ | TeaSpeak Server |
@@ -553,6 +589,10 @@ periodically to ensure dependencies are always up-to-date.
 ---
 
 # <a name="custom-images"></a>🔧 Custom Images
+
+| Image | Status | Description |
+|-------|--------|-------------|
+| `goover/custom` | [![build custom](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/custom.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/custom.yml) | Custom Specialty Images |
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|

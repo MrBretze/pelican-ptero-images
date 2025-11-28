@@ -9,10 +9,14 @@ on:
     branches:
       - main
     paths:
-      - /database/postgres/**
+      - database/postgres/**
 
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   push:

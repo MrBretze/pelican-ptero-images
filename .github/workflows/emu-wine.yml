@@ -14,6 +14,10 @@ on:
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   push:
     name: "wine:${{ matrix.tag }}"
@@ -47,6 +51,5 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: "ghcr.io/goover/wine:${{ matrix.tag }}"
-          # Cache only if image exists
-          cache-from: "type=registry,ref=ghcr.io/goover/wine:${{ matrix.tag }} || echo 'no cache'"
-          cache-to: "type=registry,mode=max,ref=ghcr.io/goover/wine:${{ matrix.tag }}-cache"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
