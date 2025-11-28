@@ -1,4 +1,4 @@
-FROM        --platform=$TARGETOS/$TARGETARCH ghcr.io/graalvm/jdk-community:22
+FROM        --platform=$TARGETOS/$TARGETARCH ghcr.io/graalvm/jdk-community:25
 
 LABEL       org.opencontainers.image.authors="info@goover.de"
 LABEL       org.opencontainers.image.source="https://github.com/gOOvER/own-pterodactyl-images"

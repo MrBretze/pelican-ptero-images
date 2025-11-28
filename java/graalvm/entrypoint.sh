@@ -1,20 +1,70 @@
 #!/bin/bash
+set -e
 
-#System variables
-clear
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+ERROR_LOG="entrypoint_error.log"
+: > "$ERROR_LOG"  # Clear old log file
 
-# Switch to the container's working directory
-cd /home/container || exit 1
+# ----------------------------
+# Colors via tput (with fallback for non-interactive terminals)
+# ----------------------------
+if [ -t 1 ] && command -v tput &>/dev/null; then
+    RED=$(tput setaf 1 2>/dev/null || echo "")
+    GREEN=$(tput setaf 2 2>/dev/null || echo "")
+    YELLOW=$(tput setaf 3 2>/dev/null || echo "")
+    BLUE=$(tput setaf 4 2>/dev/null || echo "")
+    CYAN=$(tput setaf 6 2>/dev/null || echo "")
+    NC=$(tput sgr0 2>/dev/null || echo "")
+else
+    RED="" GREEN="" YELLOW="" BLUE="" CYAN="" NC=""
+fi
 
-# Wait for the container to fully initialize
+# ----------------------------
+# Functions
+# ----------------------------
+msg() {
+    local color="$1"
+    shift
+    # If RED, also write the message to entrypoint_error.log
+    if [ "$color" = "RED" ]; then
+        printf "%b\n" "${RED}$*${NC}" | tee -a "$ERROR_LOG" >&2
+    else
+        printf "%b\n" "${!color}$*${NC}"
+    fi
+}
+
+line() {
+    local color="${1:-BLUE}"
+    local term_width
+    local sep
+    local line_color
+
+    term_width=$(tput cols 2>/dev/null || echo 70)
+    sep=$(printf '%*s' "$term_width" '' | tr ' ' '-')
+
+    case "$color" in
+        RED) line_color="$RED";;
+        GREEN) line_color="$GREEN";;
+        YELLOW) line_color="$YELLOW";;
+        BLUE) line_color="$BLUE";;
+        CYAN) line_color="$CYAN";;
+        *) line_color="$NC";;
+    esac
+    printf "%b\n" "${line_color}${sep}${NC}"
+}
+
+# ----------------------------
+# Error trap for uncaught errors
+# ----------------------------
+trap 'echo "$(date +%Y-%m-%d\ %H:%M:%S) - Unexpected error at line $LINENO" | tee -a "$ERROR_LOG" >&2' ERR
+
+# ----------------------------
+# Environment
+# ----------------------------
+cd /home/container || { msg RED "Failed to change directory to /home/container."; exit 1; }
+
 sleep 1
 
-# Default the TZ environment variable to UTC.
+# Default the TZ environment variable to UTC
 TZ=${TZ:-UTC}
 export TZ
 
@@ -22,25 +72,36 @@ export TZ
 INTERNAL_IP=$(ip route get 1 | awk '{print $(NF-2);exit}')
 export INTERNAL_IP
 
-# system informations
-echo -e "${BLUE}---------------------------------------------------------------------${NC}"
-echo -e "${RED}Java GraalVM Community Image by gOOvER - https://discord.goover.dev${NC}"
-echo -e "${RED}THIS IMAGE IS LICENSED UNDER AGPLv3${NC}"
-echo -e "${BLUE}---------------------------------------------------------------------${NC}"
-echo -e "${YELLOW}Linux Distribution: ${RED} $(. /etc/os-release ; echo $PRETTY_NAME)${NC}"
-echo -e "${YELLOW}Current timezone: ${RED} $(cat /etc/timezone)${NC}"
-echo -e "${YELLOW}Java Version: ${RED} $(java -version) ${NC}"
-echo -e "${BLUE}---------------------------------------------------------------------${NC}"
+# ----------------------------
+# System Info
+# ----------------------------
+LINUX=$(. /etc/os-release 2>/dev/null && echo "$PRETTY_NAME" || echo "Unknown")
+TIMEZONE=$(if [ -f /etc/timezone ]; then cat /etc/timezone; elif [ -L /etc/localtime ]; then readlink /etc/localtime | sed 's|.*/zoneinfo/||'; else echo "$TZ"; fi)
+JAVA_VER=$(java -version 2>&1 | head -n 1 || echo "Java not found")
 
-# Convert all of the "{{VARIABLE}}" parts of the command into the expected shell
-# variable format of "${VARIABLE}" before evaluating the string and automatically
-# replacing the values.
-PARSED=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g' | eval echo "$(cat -)")
+# ----------------------------
+# Banner
+# ----------------------------
+clear
+line BLUE
+msg RED "Java GraalVM Community Image by gOOvER - https://discord.goover.dev"
+msg RED "THIS IMAGE IS LICENSED UNDER AGPLv3"
+line BLUE
+msg YELLOW "Linux Distribution: ${RED}$LINUX"
+msg YELLOW "Current timezone: ${RED}$TIMEZONE"
+msg YELLOW "Java Version: ${RED}$JAVA_VER"
+line BLUE
 
-# Display the command we're running in the output, and then execute it with the env
-# from the container itself.
-printf "\033[1m\033[33mcontainer@gameservertech~ \033[0m%s\n" "$PARSED"
+# ----------------------------
+# Startup command
+# ----------------------------
+# Replace {{VAR}} with ${VAR} syntax for variable expansion
+# Using envsubst for safe variable substitution (prevents command injection)
+PARSED=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g' | envsubst)
 
+msg CYAN ":/home/container$ ${PARSED}"
+
+# Execute the startup command
 # shellcheck disable=SC2086
 exec env ${PARSED}
 
