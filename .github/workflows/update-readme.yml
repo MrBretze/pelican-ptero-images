@@ -27,8 +27,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Scan for Docker images
-        id: scan
+      - name: Scan and update README
+        id: update
         run: |
           echo "🔍 Scanning repository for Docker images..."
 
@@ -44,372 +44,239 @@ jobs:
           get_subdirs() {
             local dir="$1"
             if [ -d "$dir" ]; then
-              find "$dir" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' 2>/dev/null | sort -V || true
+              find "$dir" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' 2>/dev/null | sort || true
             fi
           }
 
-          # Generate JSON with all images
-          echo "{" > images.json
-          echo '  "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",' >> images.json
+          # Function to check if image is in README
+          check_image() {
+            local pattern="$1"
+            grep -q "$pattern" README.md
+          }
 
-          # Java Base
-          echo '  "java_base": [' >> images.json
-          first=true
+          # Function to add image row to README after a marker
+          add_image_row() {
+            local marker="$1"
+            local new_row="$2"
+            local temp_file=$(mktemp)
+
+            awk -v marker="$marker" -v new_row="$new_row" '
+              {
+                print
+                if (index($0, marker) > 0 && !added) {
+                  print new_row
+                  added = 1
+                }
+              }
+            ' README.md > "$temp_file" && mv "$temp_file" README.md
+          }
+
+          CHANGES_MADE=""
+
+          # ============================================
+          # Check Java Base versions
+          # ============================================
+          echo "📦 Checking Java Base..."
           for v in $(get_versions "java/base"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+            if ! check_image "java:$v"; then
+              echo "  ➕ Adding java:$v"
+              # Find last java entry and add after it
+              last_java=$(grep -n "| java:[0-9]" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_java" ]; then
+                sed -i "${last_java}a\\| java:$v | \`ghcr.io/goover/java:$v\` | ✅ | ✅ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Java Base: $v\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # Java GraalVM
-          echo '  "java_graalvm": [' >> images.json
-          first=true
+          # ============================================
+          # Check Java GraalVM versions
+          # ============================================
+          echo "📦 Checking Java GraalVM..."
           for v in $(get_versions "java/graalvm"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+            if ! check_image "java:graalvm_$v"; then
+              echo "  ➕ Adding java:graalvm_$v"
+              last_graalvm=$(grep -n "| java:graalvm_" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_graalvm" ]; then
+                sed -i "${last_graalvm}a\\| java:graalvm_$v | \`ghcr.io/goover/java:graalvm_$v\` | ✅ | ✅ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Java GraalVM: $v\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # Java Corretto
-          echo '  "java_corretto": [' >> images.json
-          first=true
+          # ============================================
+          # Check Java Corretto versions
+          # ============================================
+          echo "📦 Checking Java Corretto..."
           for v in $(get_versions "java/corretto"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+            if ! check_image "java:corretto_$v"; then
+              echo "  ➕ Adding java:corretto_$v"
+              last_corretto=$(grep -n "| java:corretto_" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_corretto" ]; then
+                sed -i "${last_corretto}a\\| java:corretto_$v | \`ghcr.io/goover/java:corretto_$v\` | ✅ | ✅ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Java Corretto: $v\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # Java Zulu
-          echo '  "java_zulu": [' >> images.json
-          first=true
+          # ============================================
+          # Check Java Zulu versions
+          # ============================================
+          echo "📦 Checking Java Zulu..."
           for v in $(get_versions "java/zulu"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+            if ! check_image "java:zulu_$v"; then
+              echo "  ➕ Adding java:zulu_$v"
+              last_zulu=$(grep -n "| java:zulu_" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_zulu" ]; then
+                sed -i "${last_zulu}a\\| java:zulu_$v | \`ghcr.io/goover/java:zulu_$v\` | ✅ | ✅ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Java Zulu: $v\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # Java Dragonwell
-          echo '  "java_dragonwell": [' >> images.json
-          first=true
+          # ============================================
+          # Check Java Dragonwell versions
+          # ============================================
+          echo "📦 Checking Java Dragonwell..."
           for v in $(get_versions "java/dragonwell"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+            if ! check_image "java:dragonwell_$v"; then
+              echo "  ➕ Adding java:dragonwell_$v"
+              last_dragonwell=$(grep -n "| java:dragonwell_" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_dragonwell" ]; then
+                sed -i "${last_dragonwell}a\\| java:dragonwell_$v | \`ghcr.io/goover/java:dragonwell_$v\` | ✅ | ✅ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Java Dragonwell: $v\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # Java Liberica
-          echo '  "java_liberica": [' >> images.json
-          first=true
+          # ============================================
+          # Check Java Liberica versions
+          # ============================================
+          echo "📦 Checking Java Liberica..."
           for v in $(get_versions "java/liberica"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+            if ! check_image "java:liberica_$v"; then
+              echo "  ➕ Adding java:liberica_$v"
+              last_liberica=$(grep -n "| java:liberica_" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_liberica" ]; then
+                sed -i "${last_liberica}a\\| java:liberica_$v | \`ghcr.io/goover/java:liberica_$v\` | ✅ | ✅ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Java Liberica: $v\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # Java Shenandoah
-          echo '  "java_shenandoah": [' >> images.json
-          first=true
+          # ============================================
+          # Check Java Shenandoah versions
+          # ============================================
+          echo "📦 Checking Java Shenandoah..."
           for v in $(get_versions "java/shenandoah"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+            if ! check_image "java:shenandoah_$v"; then
+              echo "  ➕ Adding java:shenandoah_$v"
+              last_shenandoah=$(grep -n "| java:shenandoah_" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_shenandoah" ]; then
+                sed -i "${last_shenandoah}a\\| java:shenandoah_$v | \`ghcr.io/goover/java:shenandoah_$v\` | ✅ | ✅ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Java Shenandoah: $v\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # MariaDB
-          echo '  "mariadb": [' >> images.json
-          first=true
-          for v in $(get_versions "database/mariadb"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+          # ============================================
+          # Check Database versions
+          # ============================================
+          for db in mariadb postgres mongodb redis; do
+            echo "📦 Checking $db..."
+            for v in $(get_versions "database/$db"); do
+              if ! check_image "$db:$v"; then
+                echo "  ➕ Adding $db:$v"
+                last_db=$(grep -n "| $db:" README.md | tail -1 | cut -d: -f1)
+                if [ -n "$last_db" ]; then
+                  sed -i "${last_db}a\\| $db:$v | \`ghcr.io/goover/$db:$v\` | ✅ | ✅ |" README.md
+                  CHANGES_MADE="${CHANGES_MADE}${db^}: $v\n"
+                fi
+              fi
+            done
           done
-          echo '],' >> images.json
 
-          # PostgreSQL
-          echo '  "postgres": [' >> images.json
-          first=true
-          for v in $(get_versions "database/postgres"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+          # ============================================
+          # Check Dev images (nodejs, python, go, etc.)
+          # ============================================
+          for dev in nodejs python go elixir; do
+            echo "📦 Checking $dev..."
+            for v in $(get_versions "dev/$dev"); do
+              if ! check_image "$dev:$v"; then
+                echo "  ➕ Adding $dev:$v"
+                last_dev=$(grep -n "| $dev:" README.md | tail -1 | cut -d: -f1)
+                if [ -n "$last_dev" ]; then
+                  sed -i "${last_dev}a\\| $dev:$v | \`ghcr.io/goover/$dev:$v\` | ✅ | ✅ |" README.md
+                  CHANGES_MADE="${CHANGES_MADE}${dev^}: $v\n"
+                fi
+              fi
+            done
           done
-          echo '],' >> images.json
 
-          # MongoDB
-          echo '  "mongodb": [' >> images.json
-          first=true
-          for v in $(get_versions "database/mongodb"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+          # ============================================
+          # Check DotNet versions
+          # ============================================
+          echo "📦 Checking dotnet..."
+          for v in $(get_versions "dev/dotnet"); do
+            if ! check_image "dotnet:$v"; then
+              echo "  ➕ Adding dotnet:$v"
+              last_dotnet=$(grep -n "| dotnet:" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_dotnet" ]; then
+                sed -i "${last_dotnet}a\\| dotnet:$v | \`ghcr.io/goover/dotnet:$v\` | ✅ | ❌ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}DotNet: $v\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # Redis
-          echo '  "redis": [' >> images.json
-          first=true
-          for v in $(get_versions "database/redis"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
+          # ============================================
+          # Check Game images
+          # ============================================
+          echo "📦 Checking games..."
+          for game in $(get_subdirs "games"); do
+            if ! check_image "games:$game"; then
+              echo "  ➕ Adding games:$game"
+              last_game=$(grep -n "| games:" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_game" ]; then
+                sed -i "${last_game}a\\| games:$game | \`ghcr.io/goover/games:$game\` | ✅ | ❌ | ${game^} Server |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Games: $game\n"
+              fi
+            fi
           done
-          echo '],' >> images.json
 
-          # NodeJS (dev)
-          echo '  "nodejs": [' >> images.json
-          first=true
-          for v in $(get_versions "dev/nodejs"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
-          done
-          echo '],' >> images.json
-
-          # Python (dev)
-          echo '  "python": [' >> images.json
-          first=true
-          for v in $(get_versions "dev/python"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
-          done
-          echo '],' >> images.json
-
-          # Go (dev)
-          echo '  "go": [' >> images.json
-          first=true
-          for v in $(get_versions "dev/go"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
-          done
-          echo '],' >> images.json
-
-          # Elixir (dev)
-          echo '  "elixir": [' >> images.json
-          first=true
-          for v in $(get_versions "dev/elixir"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
-          done
-          echo '],' >> images.json
-
-          # Games
-          echo '  "games": [' >> images.json
-          first=true
-          for v in $(get_subdirs "games"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
-          done
-          echo '],' >> images.json
-
-          # Bots
-          echo '  "bots": [' >> images.json
-          first=true
-          for v in $(get_subdirs "bots"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
-          done
-          echo '],' >> images.json
-
-          # Apps
-          echo '  "apps": [' >> images.json
-          first=true
-          for v in $(get_subdirs "apps"); do
-            [ "$first" = false ] && echo -n "," >> images.json
-            first=false
-            echo -n "\"$v\"" >> images.json
-          done
-          echo ']' >> images.json
-
-          echo "}" >> images.json
-
-          cat images.json
-          echo ""
-          echo "✅ Image scan complete"
-
-      - name: Generate updated README
-        id: generate
-        run: |
-          cat << 'PYTHON_SCRIPT' > generate_readme.py
-          import json
-          import re
-          import sys
-
-          # Load scanned images
-          with open('images.json', 'r') as f:
-              images = json.load(f)
-
-          # Read current README
-          with open('README.md', 'r') as f:
-              readme = f.read()
-
-          changes_made = []
-
-          def generate_table_rows(items, image_name, tag_prefix="", arm64_default="✅"):
-              rows = []
-              for item in items:
-                  if tag_prefix:
-                      tag = f"{tag_prefix}_{item}"
-                      display = f"{image_name}:{tag_prefix}_{item}"
-                  else:
-                      tag = item
-                      display = f"{image_name}:{item}"
-                  rows.append(f"| {display} | `ghcr.io/goover/{image_name}:{tag}` | ✅ | {arm64_default} |")
-              return rows
-
-          def check_missing_images(readme, items, image_name, tag_prefix=""):
-              missing = []
-              for item in items:
-                  if tag_prefix:
-                      search_tag = f"{tag_prefix}_{item}"
-                  else:
-                      search_tag = str(item)
-
-                  # Check if this version exists in README
-                  pattern = f"{image_name}:{search_tag}"
-                  if pattern not in readme:
-                      missing.append(item)
-              return missing
-
-          # Check all image categories for missing entries
-          missing_images = {}
-
-          # Java Base
-          if images.get('java_base'):
-              missing = check_missing_images(readme, images['java_base'], 'java')
-              if missing:
-                  missing_images['Java Base'] = missing
-
-          # Java GraalVM
-          if images.get('java_graalvm'):
-              missing = check_missing_images(readme, images['java_graalvm'], 'java', 'graalvm')
-              if missing:
-                  missing_images['Java GraalVM'] = missing
-
-          # Java Corretto
-          if images.get('java_corretto'):
-              missing = check_missing_images(readme, images['java_corretto'], 'java', 'corretto')
-              if missing:
-                  missing_images['Java Corretto'] = missing
-
-          # Java Zulu
-          if images.get('java_zulu'):
-              missing = check_missing_images(readme, images['java_zulu'], 'java', 'zulu')
-              if missing:
-                  missing_images['Java Zulu'] = missing
-
-          # Java Dragonwell
-          if images.get('java_dragonwell'):
-              missing = check_missing_images(readme, images['java_dragonwell'], 'java', 'dragonwell')
-              if missing:
-                  missing_images['Java Dragonwell'] = missing
-
-          # Java Liberica
-          if images.get('java_liberica'):
-              missing = check_missing_images(readme, images['java_liberica'], 'java', 'liberica')
-              if missing:
-                  missing_images['Java Liberica'] = missing
-
-          # Java Shenandoah
-          if images.get('java_shenandoah'):
-              missing = check_missing_images(readme, images['java_shenandoah'], 'java', 'shenandoah')
-              if missing:
-                  missing_images['Java Shenandoah'] = missing
-
-          # Databases
-          for db in ['mariadb', 'postgres', 'mongodb', 'redis']:
-              if images.get(db):
-                  missing = check_missing_images(readme, images[db], db)
-                  if missing:
-                      missing_images[db.title()] = missing
-
-          # Dev images
-          for dev in ['nodejs', 'python', 'go', 'elixir']:
-              if images.get(dev):
-                  missing = check_missing_images(readme, images[dev], dev)
-                  if missing:
-                      missing_images[dev.title()] = missing
-
-          # Games, Bots, Apps
-          if images.get('games'):
-              missing = check_missing_images(readme, images['games'], 'games')
-              if missing:
-                  missing_images['Games'] = missing
-
-          if images.get('bots'):
-              missing = check_missing_images(readme, images['bots'], 'bots')
-              if missing:
-                  missing_images['Bots'] = missing
-
-          if images.get('apps'):
-              missing = check_missing_images(readme, images['apps'], 'apps')
-              if missing:
-                  missing_images['Apps'] = missing
-
-          # Output results
-          if missing_images:
-              print("MISSING_IMAGES=true")
-              print("\n📝 Missing images detected:")
-              for category, items in missing_images.items():
-                  print(f"  {category}: {', '.join(str(i) for i in items)}")
-
-              # Save missing images for PR description
-              with open('missing_images.txt', 'w') as f:
-                  for category, items in missing_images.items():
-                      f.write(f"- **{category}**: {', '.join(str(i) for i in items)}\n")
-          else:
-              print("MISSING_IMAGES=false")
-              print("✅ README is up to date!")
-
-          PYTHON_SCRIPT
-
-          OUTPUT=$(python3 generate_readme.py)
-          echo "$OUTPUT"
-
-          if echo "$OUTPUT" | grep -q "MISSING_IMAGES=true"; then
+          # Output result
+          if [ -n "$CHANGES_MADE" ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo ""
+            echo "✅ Changes made:"
+            echo -e "$CHANGES_MADE"
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "✅ README is already up to date!"
           fi
 
       - name: Create Pull Request
-        if: steps.generate.outputs.has_changes == 'true'
+        if: steps.update.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "docs: update README with new Docker images"
+          commit-message: "docs: add new Docker images to README"
           title: "📝 Update README - New Docker Images Detected"
           body: |
             ## 🤖 Automated README Update
 
-            This PR was automatically generated because new Docker images were detected that are not yet documented in the README.
+            This PR adds newly detected Docker images to the README.
 
-            ### Missing Images:
-
-            $(cat missing_images.txt 2>/dev/null || echo "See workflow logs for details")
-
-            ### Action Required:
-
-            1. Review the changes
-            2. Add the missing image entries to the appropriate sections in README.md
-            3. Merge this PR or close if not needed
+            ### What changed:
+            - New image entries have been added to the appropriate tables in README.md
+            - All new entries follow the existing format
 
             ---
 
             *This PR was created automatically by the [Update README](.github/workflows/update-readme.yml) workflow.*
-          branch: docs/update-readme-images
+          branch: docs/readme-images-${{ github.run_number }}
           delete-branch: true
+          add-paths: |
+            README.md
           labels: |
             documentation
             automated

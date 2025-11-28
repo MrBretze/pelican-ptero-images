@@ -17,46 +17,48 @@ periodically to ensure dependencies are always up-to-date.
 
 ## 📋 Table of Contents
 
-- [Development Images](#-development-images)
-  - [NodeJS](#-nodejs)
-  - [Python](#-python)
-  - [Go](#-go)
-  - [Rust](#-rust)
-  - [DotNet](#-dotnet)
-  - [Bun](#-bun)
-  - [Dart](#-dart)
-  - [Elixir](#-elixir)
-- [Java Images](#-java-images)
-  - [Java Base (Temurin)](#-java-base-temurin)
-  - [Java GraalVM](#-java-graalvm)
-  - [Java Corretto](#-java-corretto)
-  - [Java Zulu](#-java-zulu)
-  - [Java Dragonwell](#-java-dragonwell)
-  - [Java Liberica](#-java-liberica)
-  - [Java Shenandoah](#-java-shenandoah)
-- [Database Images](#-database-images)
-  - [MariaDB](#-mariadb)
-  - [PostgreSQL](#-postgresql)
-  - [MongoDB](#-mongodb)
-  - [Redis](#-redis)
-  - [KeyDB](#-keydb)
-  - [Cassandra](#-cassandra)
-- [Game Server Images](#-game-server-images)
-  - [Steam](#-steam)
-  - [SteamCMD](#-steamcmd)
-  - [Wine](#-wine)
-  - [Game Specific](#-game-specific)
-- [Bot Images](#-bot-images)
-- [Application Images](#-application-images)
-- [Distribution Images](#-distribution-images)
-- [Installer Images](#-installer-images)
-- [Alpine Images](#-alpine-images)
+- [Development Images](#development-images)
+  - [NodeJS](#nodejs)
+  - [Python](#python)
+  - [Go](#go)
+  - [Rust](#rust)
+  - [DotNet](#dotnet)
+  - [Bun](#bun)
+  - [Dart](#dart)
+  - [Elixir](#elixir)
+- [Java Images](#java-images)
+  - [Java Base (Temurin)](#java-base-temurin)
+  - [Java GraalVM](#java-graalvm)
+  - [Java Corretto](#java-corretto)
+  - [Java Zulu](#java-zulu)
+  - [Java Dragonwell](#java-dragonwell)
+  - [Java Liberica](#java-liberica)
+  - [Java Shenandoah](#java-shenandoah)
+- [Database Images](#database-images)
+  - [MariaDB](#mariadb)
+  - [PostgreSQL](#postgresql)
+  - [MongoDB](#mongodb)
+  - [Redis](#redis)
+  - [KeyDB](#keydb)
+  - [Cassandra](#cassandra)
+- [Game Server Images](#game-server-images)
+  - [Steam](#steam)
+  - [SteamCMD](#steamcmd)
+  - [Wine](#wine)
+  - [Game Specific](#game-specific)
+- [Bot Images](#bot-images)
+- [Application Images](#application-images)
+- [Distribution Images](#distribution-images)
+- [Installer Images](#installer-images)
+- [Alpine Images](#alpine-images)
+- [Voice Images](#voice-images)
+- [Custom Images](#custom-images)
 
 ---
 
-# 🛠️ Development Images
+# <a name="development-images"></a>🛠️ Development Images
 
-## ➡️ NodeJS
+## <a name="nodejs"></a>➡️ NodeJS
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -75,7 +77,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Python
+## <a name="python"></a>➡️ Python
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -93,7 +95,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ GO
+## <a name="go"></a>➡️ GO
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -113,7 +115,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Rust
+## <a name="rust"></a>➡️ Rust
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -125,7 +127,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ DotNet
+## <a name="dotnet"></a>➡️ DotNet
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -144,7 +146,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Bun
+## <a name="bun"></a>➡️ Bun
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -157,7 +159,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Dart
+## <a name="dart"></a>➡️ Dart
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -170,7 +172,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Elixir
+## <a name="elixir"></a>➡️ Elixir
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -187,9 +189,9 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# ☕ Java Images
+# <a name="java-images"></a>☕ Java Images
 
-## ➡️ Java Base (Temurin)
+## <a name="java-base-temurin"></a>➡️ Java Base (Temurin)
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -211,7 +213,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Java GraalVM
+## <a name="java-graalvm"></a>➡️ Java GraalVM
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -228,7 +230,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Java Corretto
+## <a name="java-corretto"></a>➡️ Java Corretto
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -245,7 +247,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Java Zulu
+## <a name="java-zulu"></a>➡️ Java Zulu
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -267,7 +269,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Java Dragonwell
+## <a name="java-dragonwell"></a>➡️ Java Dragonwell
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -282,7 +284,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Java Liberica
+## <a name="java-liberica"></a>➡️ Java Liberica
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -298,7 +300,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Java Shenandoah
+## <a name="java-shenandoah"></a>➡️ Java Shenandoah
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -313,9 +315,9 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 🗄️ Database Images
+# <a name="database-images"></a>🗄️ Database Images
 
-## ➡️ MariaDB
+## <a name="mariadb"></a>➡️ MariaDB
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -333,7 +335,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ PostgreSQL
+## <a name="postgresql"></a>➡️ PostgreSQL
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -352,7 +354,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ MongoDB
+## <a name="mongodb"></a>➡️ MongoDB
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -366,7 +368,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Redis
+## <a name="redis"></a>➡️ Redis
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -380,7 +382,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ KeyDB
+## <a name="keydb"></a>➡️ KeyDB
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -392,7 +394,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Cassandra
+## <a name="cassandra"></a>➡️ Cassandra
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -405,9 +407,9 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 🎮 Game Server Images
+# <a name="game-server-images"></a>🎮 Game Server Images
 
-## ➡️ Steam
+## <a name="steam"></a>➡️ Steam
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -420,7 +422,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ SteamCMD
+## <a name="steamcmd"></a>➡️ SteamCMD
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -434,7 +436,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Wine
+## <a name="wine"></a>➡️ Wine
 
 | Image | Status | Description |
 |-------|--------|-------------|
@@ -448,7 +450,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-## ➡️ Game Specific
+## <a name="game-specific"></a>➡️ Game Specific
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
@@ -466,7 +468,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 🤖 Bot Images
+# <a name="bot-images"></a>🤖 Bot Images
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
@@ -477,7 +479,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 📱 Application Images
+# <a name="application-images"></a>📱 Application Images
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
@@ -486,7 +488,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 🐧 Distribution Images
+# <a name="distribution-images"></a>🐧 Distribution Images
 
 ## ➡️ Alpine
 
@@ -514,7 +516,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 📦 Installer Images
+# <a name="installer-images"></a>📦 Installer Images
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
@@ -528,7 +530,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 🏔️ Alpine Images
+# <a name="alpine-images"></a>🏔️ Alpine Images
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
@@ -538,7 +540,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 🎙️ Voice Images
+# <a name="voice-images"></a>🎙️ Voice Images
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
@@ -546,7 +548,7 @@ periodically to ensure dependencies are always up-to-date.
 
 ---
 
-# 🔧 Custom Images
+# <a name="custom-images"></a>🔧 Custom Images
 
 | Image | URI | AMD64 | ARM64 | Description |
 |-------|:---:|:-----:|:-----:|-------------|
