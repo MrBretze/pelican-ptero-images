@@ -3,7 +3,7 @@ import re
 import sys
 from pathlib import Path
 
-repo_root = Path(r"x:\Github Workspace\own-pterodactyl-images")
+repo_root = Path(r"x:\Github Workspace\pelican-ptero-images")
 pattern = re.compile(r'(\[\s*[-nzh]{1,2}\s*)(\"?\$\{([A-Za-z0-9_]+)\}\}"?)')
 # We'll also catch ${VAR} inside double-quoted context within [[ ... ]]
 # Approach: replace occurrences of ${VAR} inside tests with ${VAR:-}

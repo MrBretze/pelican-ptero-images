@@ -3,7 +3,7 @@ FROM        --platform=$TARGETOS/$TARGETARCH debian:bookworm-slim
 LABEL       org.opencontainers.image.authors="info@goover.de"
 LABEL       org.opencontainers.image.source="https://github.com/gOOvER/pelican-ptero-images"
 LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
-LABEL       org.opencontainers.image.title="Pelican Image - .NET SDK 6"
+LABEL       org.opencontainers.image.title="Pelican Image - .NET SDK 10"
 LABEL       org.opencontainers.image.description="Docker image for Pelican Hosting Panel and Pterodactyl"
 LABEL       org.opencontainers.image.vendor="gOOvER"
 LABEL       org.opencontainers.image.url="https://github.com/gOOvER/pelican-ptero-images"
@@ -29,10 +29,10 @@ RUN         apt-get update \
                 sqlite3 \
                 tini \
                 wget \
-            ## Install .NET SDK 6.0 (LTS - EOL Nov 2024)
+            ## Install .NET SDK 10.0
             && wget -q https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh \
             && chmod +x /tmp/dotnet-install.sh \
-            && /tmp/dotnet-install.sh -i /usr/share/dotnet -c 6.0 \
+            && /tmp/dotnet-install.sh -i /usr/share/dotnet -c 10.0 \
             && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet \
             ## Configure locale
             && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \

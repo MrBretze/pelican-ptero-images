@@ -1,7 +1,7 @@
 FROM  --platform=$TARGETOS/$TARGETARCH ubuntu:22.04
 
 LABEL      org.opencontainers.image.authors="info@goover.de"
-LABEL       org.opencontainers.image.source="https://github.com/gOOvER/own-pterodactyl-images"
+LABEL       org.opencontainers.image.source="https://github.com/gOOvER/pelican-ptero-images"
 LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 LABEL       org.opencontainers.image.description="Docker image for Pelican Hosting Panel and Pterodactyl"
 

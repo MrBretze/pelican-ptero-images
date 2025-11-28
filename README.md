@@ -6,12 +6,12 @@ A curated collection of core images that can be used with Pterodactyl's Egg syst
 periodically to ensure dependencies are always up-to-date.
 
 [![Discord](https://img.shields.io/discord/1158000498952126464?label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/RmqSeYBQ4y)
-[![License](https://img.shields.io/github/license/gOOvER/own-pterodactyl-images)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/gOOvER/own-pterodactyl-images?style=flat&logo=github)](https://github.com/gOOvER/own-pterodactyl-images/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/gOOvER/own-pterodactyl-images?style=flat&logo=github)](https://github.com/gOOvER/own-pterodactyl-images/network/members)
-[![GitHub Issues](https://img.shields.io/github/issues/gOOvER/own-pterodactyl-images)](https://github.com/gOOvER/own-pterodactyl-images/issues)
-[![GitHub Last Commit](https://img.shields.io/github/last-commit/gOOvER/own-pterodactyl-images)](https://github.com/gOOvER/own-pterodactyl-images/commits)
-[![Maintenance](https://img.shields.io/maintenance/yes/2025)](https://github.com/gOOvER/own-pterodactyl-images)
+[![License](https://img.shields.io/github/license/gOOvER/pelican-ptero-images)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/gOOvER/pelican-ptero-images?style=flat&logo=github)](https://github.com/gOOvER/pelican-ptero-images/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/gOOvER/pelican-ptero-images?style=flat&logo=github)](https://github.com/gOOvER/pelican-ptero-images/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/gOOvER/pelican-ptero-images)](https://github.com/gOOvER/pelican-ptero-images/issues)
+[![GitHub Last Commit](https://img.shields.io/github/last-commit/gOOvER/pelican-ptero-images)](https://github.com/gOOvER/pelican-ptero-images/commits)
+[![Maintenance](https://img.shields.io/maintenance/yes/2025)](https://github.com/gOOvER/pelican-ptero-images)
 
 ---
 
@@ -60,7 +60,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/nodejs` | [![build nodejs](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-nodejs.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-nodejs.yml) | NodeJS versions from `12` to `23` |
+| `goover/nodejs` | [![build nodejs](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-nodejs.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-nodejs.yml) | NodeJS versions from `12` to `23` |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -79,7 +79,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/python` | [![build python](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-python.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-python.yml) | Python versions from `3.7` to `3.13` |
+| `goover/python` | [![build python](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-python.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-python.yml) | Python versions from `3.7` to `3.13` |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -97,7 +97,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/go` | [![build go](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-go.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-go.yml) | GO versions from `1.14` to `1.22` |
+| `goover/go` | [![build go](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-go.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-go.yml) | GO versions from `1.14` to `1.22` |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -117,7 +117,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/rust` | [![build rust](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-rust.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-rust.yml) | Rust latest |
+| `goover/rust` | [![build rust](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-rust.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-rust.yml) | Rust latest |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -129,7 +129,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/dotnet` | [![build dotnet](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-dotnet.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-dotnet.yml) | DotNet versions from `6` to `9` |
+| `goover/dotnet` | [![build dotnet](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-dotnet.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-dotnet.yml) | DotNet versions from `6` to `9` |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -148,7 +148,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/bun` | [![build bun](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-bun.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-bun.yml) | Bun JavaScript runtime |
+| `goover/bun` | [![build bun](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-bun.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-bun.yml) | Bun JavaScript runtime |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -161,7 +161,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/dart` | [![build dart](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-dart.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-dart.yml) | Dart SDK |
+| `goover/dart` | [![build dart](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-dart.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-dart.yml) | Dart SDK |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -174,7 +174,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/elixir` | [![build elixir](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-elixir.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/dev-elixir.yml) | Elixir versions from `1.12` to `1.16` |
+| `goover/elixir` | [![build elixir](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-elixir.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-elixir.yml) | Elixir versions from `1.12` to `1.16` |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -193,7 +193,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/java` | [![build java](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-base.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-base.yml) | Eclipse Temurin JDK |
+| `goover/java` | [![build java](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-base.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-base.yml) | Eclipse Temurin JDK |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -215,7 +215,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/java` | [![build java-graalvm](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-graalvm.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-graalvm.yml) | GraalVM Community Edition |
+| `goover/java` | [![build java-graalvm](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-graalvm.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-graalvm.yml) | GraalVM Community Edition |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -232,7 +232,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/java` | [![build java-corretto](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-corretto.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-corretto.yml) | Amazon Corretto JDK |
+| `goover/java` | [![build java-corretto](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-corretto.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-corretto.yml) | Amazon Corretto JDK |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -249,7 +249,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/java` | [![build java-zulu](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-zulu.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-zulu.yml) | Azul Zulu JDK |
+| `goover/java` | [![build java-zulu](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-zulu.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-zulu.yml) | Azul Zulu JDK |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -271,7 +271,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/java` | [![build java-dragonwell](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-dragonwell.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-dragonwell.yml) | Alibaba Dragonwell JDK |
+| `goover/java` | [![build java-dragonwell](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-dragonwell.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-dragonwell.yml) | Alibaba Dragonwell JDK |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -286,7 +286,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/java` | [![build java-liberica](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-liberica.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-liberica.yml) | BellSoft Liberica JDK |
+| `goover/java` | [![build java-liberica](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-liberica.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-liberica.yml) | BellSoft Liberica JDK |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -302,7 +302,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/java` | [![build java-shenandoah](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-shenandoah.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/java-shenandoah.yml) | Shenandoah GC JDK |
+| `goover/java` | [![build java-shenandoah](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-shenandoah.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/java-shenandoah.yml) | Shenandoah GC JDK |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -319,7 +319,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/mariadb` | [![build mariadb](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-mariadb.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-mariadb.yml) | MariaDB Database Server |
+| `goover/mariadb` | [![build mariadb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-mariadb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-mariadb.yml) | MariaDB Database Server |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -337,7 +337,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/postgres` | [![build postgres](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-postgres.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-postgres.yml) | PostgreSQL Database Server |
+| `goover/postgres` | [![build postgres](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-postgres.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-postgres.yml) | PostgreSQL Database Server |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -356,7 +356,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/mongodb` | [![build mongodb](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-mongodb.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-mongodb.yml) | MongoDB Database Server |
+| `goover/mongodb` | [![build mongodb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-mongodb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-mongodb.yml) | MongoDB Database Server |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -370,7 +370,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/redis` | [![build redis](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-redis.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-redis.yml) | Redis In-Memory Database |
+| `goover/redis` | [![build redis](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-redis.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-redis.yml) | Redis In-Memory Database |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -384,7 +384,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/keydb` | [![build keydb](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-keydb.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-keydb.yml) | KeyDB (Redis Fork) |
+| `goover/keydb` | [![build keydb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-keydb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-keydb.yml) | KeyDB (Redis Fork) |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -396,7 +396,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/cassandra` | [![build cassandra](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-cassandra.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/database-cassandra.yml) | Apache Cassandra Database |
+| `goover/cassandra` | [![build cassandra](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-cassandra.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-cassandra.yml) | Apache Cassandra Database |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -411,7 +411,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/steam` | [![build steam](https://github.com/goover/own-pterodactyl-images/actions/workflows/steam.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/steam.yml) | Steam with Proton support |
+| `goover/steam` | [![build steam](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/steam.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/steam.yml) | Steam with Proton support |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -424,7 +424,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/steamcmd` | [![build steamcmd](https://github.com/goover/own-pterodactyl-images/actions/workflows/steamcmd.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/steamcmd.yml) | SteamCMD for game servers |
+| `goover/steamcmd` | [![build steamcmd](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/steamcmd.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/steamcmd.yml) | SteamCMD for game servers |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -438,7 +438,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/wine` | [![build wine](https://github.com/goover/own-pterodactyl-images/actions/workflows/wine.yml/badge.svg)](https://github.com/goover/own-pterodactyl-images/actions/workflows/wine.yml) | Wine for Windows applications |
+| `goover/wine` | [![build wine](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/wine.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/wine.yml) | Wine for Windows applications |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -562,4 +562,4 @@ This project is licensed under the AGPL-3.0-or-later License - see the [LICENSE]
 ## 💬 Support
 
 - Discord: [discord.com/invite/RmqSeYBQ4y](https://discord.com/invite/RmqSeYBQ4y)
-- Issues: [GitHub Issues](https://github.com/gOOvER/own-pterodactyl-images/issues)
+- Issues: [GitHub Issues](https://github.com/gOOvER/pelican-ptero-images/issues)

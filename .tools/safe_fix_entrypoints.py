@@ -8,7 +8,7 @@
 from pathlib import Path
 import re
 
-repo_root = Path(r"x:\Github Workspace\own-pterodactyl-images")
+repo_root = Path(r"x:\Github Workspace\pelican-ptero-images")
 files = list(repo_root.glob('**/entrypoint.sh'))
 var_pattern = re.compile(r'\$\{([A-Za-z0-9_]+)\}')
 changed = []

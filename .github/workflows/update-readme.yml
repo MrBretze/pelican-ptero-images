@@ -1,0 +1,417 @@
+name: Update README with Docker Images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/Dockerfile'
+      - '!.github/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-readme:
+    name: Update README
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for Docker images
+        id: scan
+        run: |
+          echo "🔍 Scanning repository for Docker images..."
+
+          # Function to get versions from a directory
+          get_versions() {
+            local dir="$1"
+            if [ -d "$dir" ]; then
+              find "$dir" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' 2>/dev/null | grep -E '^[0-9]' | sort -V || true
+            fi
+          }
+
+          # Function to get subdirectories
+          get_subdirs() {
+            local dir="$1"
+            if [ -d "$dir" ]; then
+              find "$dir" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' 2>/dev/null | sort -V || true
+            fi
+          }
+
+          # Generate JSON with all images
+          echo "{" > images.json
+          echo '  "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",' >> images.json
+
+          # Java Base
+          echo '  "java_base": [' >> images.json
+          first=true
+          for v in $(get_versions "java/base"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Java GraalVM
+          echo '  "java_graalvm": [' >> images.json
+          first=true
+          for v in $(get_versions "java/graalvm"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Java Corretto
+          echo '  "java_corretto": [' >> images.json
+          first=true
+          for v in $(get_versions "java/corretto"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Java Zulu
+          echo '  "java_zulu": [' >> images.json
+          first=true
+          for v in $(get_versions "java/zulu"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Java Dragonwell
+          echo '  "java_dragonwell": [' >> images.json
+          first=true
+          for v in $(get_versions "java/dragonwell"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Java Liberica
+          echo '  "java_liberica": [' >> images.json
+          first=true
+          for v in $(get_versions "java/liberica"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Java Shenandoah
+          echo '  "java_shenandoah": [' >> images.json
+          first=true
+          for v in $(get_versions "java/shenandoah"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # MariaDB
+          echo '  "mariadb": [' >> images.json
+          first=true
+          for v in $(get_versions "database/mariadb"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # PostgreSQL
+          echo '  "postgres": [' >> images.json
+          first=true
+          for v in $(get_versions "database/postgres"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # MongoDB
+          echo '  "mongodb": [' >> images.json
+          first=true
+          for v in $(get_versions "database/mongodb"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Redis
+          echo '  "redis": [' >> images.json
+          first=true
+          for v in $(get_versions "database/redis"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # NodeJS (dev)
+          echo '  "nodejs": [' >> images.json
+          first=true
+          for v in $(get_versions "dev/nodejs"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Python (dev)
+          echo '  "python": [' >> images.json
+          first=true
+          for v in $(get_versions "dev/python"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Go (dev)
+          echo '  "go": [' >> images.json
+          first=true
+          for v in $(get_versions "dev/go"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Elixir (dev)
+          echo '  "elixir": [' >> images.json
+          first=true
+          for v in $(get_versions "dev/elixir"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Games
+          echo '  "games": [' >> images.json
+          first=true
+          for v in $(get_subdirs "games"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Bots
+          echo '  "bots": [' >> images.json
+          first=true
+          for v in $(get_subdirs "bots"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo '],' >> images.json
+
+          # Apps
+          echo '  "apps": [' >> images.json
+          first=true
+          for v in $(get_subdirs "apps"); do
+            [ "$first" = false ] && echo -n "," >> images.json
+            first=false
+            echo -n "\"$v\"" >> images.json
+          done
+          echo ']' >> images.json
+
+          echo "}" >> images.json
+
+          cat images.json
+          echo ""
+          echo "✅ Image scan complete"
+
+      - name: Generate updated README
+        id: generate
+        run: |
+          cat << 'PYTHON_SCRIPT' > generate_readme.py
+          import json
+          import re
+          import sys
+
+          # Load scanned images
+          with open('images.json', 'r') as f:
+              images = json.load(f)
+
+          # Read current README
+          with open('README.md', 'r') as f:
+              readme = f.read()
+
+          changes_made = []
+
+          def generate_table_rows(items, image_name, tag_prefix="", arm64_default="✅"):
+              rows = []
+              for item in items:
+                  if tag_prefix:
+                      tag = f"{tag_prefix}_{item}"
+                      display = f"{image_name}:{tag_prefix}_{item}"
+                  else:
+                      tag = item
+                      display = f"{image_name}:{item}"
+                  rows.append(f"| {display} | `ghcr.io/goover/{image_name}:{tag}` | ✅ | {arm64_default} |")
+              return rows
+
+          def check_missing_images(readme, items, image_name, tag_prefix=""):
+              missing = []
+              for item in items:
+                  if tag_prefix:
+                      search_tag = f"{tag_prefix}_{item}"
+                  else:
+                      search_tag = str(item)
+
+                  # Check if this version exists in README
+                  pattern = f"{image_name}:{search_tag}"
+                  if pattern not in readme:
+                      missing.append(item)
+              return missing
+
+          # Check all image categories for missing entries
+          missing_images = {}
+
+          # Java Base
+          if images.get('java_base'):
+              missing = check_missing_images(readme, images['java_base'], 'java')
+              if missing:
+                  missing_images['Java Base'] = missing
+
+          # Java GraalVM
+          if images.get('java_graalvm'):
+              missing = check_missing_images(readme, images['java_graalvm'], 'java', 'graalvm')
+              if missing:
+                  missing_images['Java GraalVM'] = missing
+
+          # Java Corretto
+          if images.get('java_corretto'):
+              missing = check_missing_images(readme, images['java_corretto'], 'java', 'corretto')
+              if missing:
+                  missing_images['Java Corretto'] = missing
+
+          # Java Zulu
+          if images.get('java_zulu'):
+              missing = check_missing_images(readme, images['java_zulu'], 'java', 'zulu')
+              if missing:
+                  missing_images['Java Zulu'] = missing
+
+          # Java Dragonwell
+          if images.get('java_dragonwell'):
+              missing = check_missing_images(readme, images['java_dragonwell'], 'java', 'dragonwell')
+              if missing:
+                  missing_images['Java Dragonwell'] = missing
+
+          # Java Liberica
+          if images.get('java_liberica'):
+              missing = check_missing_images(readme, images['java_liberica'], 'java', 'liberica')
+              if missing:
+                  missing_images['Java Liberica'] = missing
+
+          # Java Shenandoah
+          if images.get('java_shenandoah'):
+              missing = check_missing_images(readme, images['java_shenandoah'], 'java', 'shenandoah')
+              if missing:
+                  missing_images['Java Shenandoah'] = missing
+
+          # Databases
+          for db in ['mariadb', 'postgres', 'mongodb', 'redis']:
+              if images.get(db):
+                  missing = check_missing_images(readme, images[db], db)
+                  if missing:
+                      missing_images[db.title()] = missing
+
+          # Dev images
+          for dev in ['nodejs', 'python', 'go', 'elixir']:
+              if images.get(dev):
+                  missing = check_missing_images(readme, images[dev], dev)
+                  if missing:
+                      missing_images[dev.title()] = missing
+
+          # Games, Bots, Apps
+          if images.get('games'):
+              missing = check_missing_images(readme, images['games'], 'games')
+              if missing:
+                  missing_images['Games'] = missing
+
+          if images.get('bots'):
+              missing = check_missing_images(readme, images['bots'], 'bots')
+              if missing:
+                  missing_images['Bots'] = missing
+
+          if images.get('apps'):
+              missing = check_missing_images(readme, images['apps'], 'apps')
+              if missing:
+                  missing_images['Apps'] = missing
+
+          # Output results
+          if missing_images:
+              print("MISSING_IMAGES=true")
+              print("\n📝 Missing images detected:")
+              for category, items in missing_images.items():
+                  print(f"  {category}: {', '.join(str(i) for i in items)}")
+
+              # Save missing images for PR description
+              with open('missing_images.txt', 'w') as f:
+                  for category, items in missing_images.items():
+                      f.write(f"- **{category}**: {', '.join(str(i) for i in items)}\n")
+          else:
+              print("MISSING_IMAGES=false")
+              print("✅ README is up to date!")
+
+          PYTHON_SCRIPT
+
+          OUTPUT=$(python3 generate_readme.py)
+          echo "$OUTPUT"
+
+          if echo "$OUTPUT" | grep -q "MISSING_IMAGES=true"; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.generate.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: update README with new Docker images"
+          title: "📝 Update README - New Docker Images Detected"
+          body: |
+            ## 🤖 Automated README Update
+
+            This PR was automatically generated because new Docker images were detected that are not yet documented in the README.
+
+            ### Missing Images:
+
+            $(cat missing_images.txt 2>/dev/null || echo "See workflow logs for details")
+
+            ### Action Required:
+
+            1. Review the changes
+            2. Add the missing image entries to the appropriate sections in README.md
+            3. Merge this PR or close if not needed
+
+            ---
+
+            *This PR was created automatically by the [Update README](.github/workflows/update-readme.yml) workflow.*
+          branch: docs/update-readme-images
+          delete-branch: true
+          labels: |
+            documentation
+            automated
+          assignees: gOOvER
+          reviewers: gOOvER

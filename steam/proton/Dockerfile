@@ -6,7 +6,7 @@ FROM debian:trixie-slim
 # Metadata
 LABEL org.opencontainers.image.description="STEAM Proton-GE Image to use with Pelican/Pterodactyl Gamepanel"
 LABEL org.opencontainers.image.authors="info@goover.de"
-LABEL org.opencontainers.image.source="https://github.com/gOOvER/own-pterodactyl-images"
+LABEL org.opencontainers.image.source="https://github.com/gOOvER/pelican-ptero-images"
 LABEL org.opencontainers.image.licenses=AGPL-3.0-or-later
 
 # Use bash as default shell

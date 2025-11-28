@@ -5,7 +5,7 @@ FROM ubuntu:24.04
 
 LABEL org.opencontainers.image.description="STEAM Proton-GE Image for Pelican/Pterodactyl Gamepanel"
 LABEL org.opencontainers.image.authors="info@goover.de"
-LABEL org.opencontainers.image.source="https://github.com/gOOvER/own-pterodactyl-images"
+LABEL org.opencontainers.image.source="https://github.com/gOOvER/pelican-ptero-images"
 LABEL org.opencontainers.image.licenses=AGPL-3.0-or-later
 
 SHELL ["/bin/bash", "-c"]

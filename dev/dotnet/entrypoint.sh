@@ -1,19 +1,70 @@
 #!/bin/bash
-#System variables
-clear
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+set -e
 
-# Switch to the container's working directory
-cd /home/container || exit 1
+ERROR_LOG="entrypoint_error.log"
+: > "$ERROR_LOG"  # Clear old log file
 
-# Wait for the container to fully initialize
+# ----------------------------
+# Colors via tput (with fallback for non-interactive terminals)
+# ----------------------------
+if [ -t 1 ] && command -v tput &>/dev/null; then
+    RED=$(tput setaf 1 2>/dev/null || echo "")
+    GREEN=$(tput setaf 2 2>/dev/null || echo "")
+    YELLOW=$(tput setaf 3 2>/dev/null || echo "")
+    BLUE=$(tput setaf 4 2>/dev/null || echo "")
+    CYAN=$(tput setaf 6 2>/dev/null || echo "")
+    NC=$(tput sgr0 2>/dev/null || echo "")
+else
+    RED="" GREEN="" YELLOW="" BLUE="" CYAN="" NC=""
+fi
+
+# ----------------------------
+# Functions
+# ----------------------------
+msg() {
+    local color="$1"
+    shift
+    # If RED, also write the message to entrypoint_error.log
+    if [ "$color" = "RED" ]; then
+        printf "%b\n" "${RED}$*${NC}" | tee -a "$ERROR_LOG" >&2
+    else
+        printf "%b\n" "${!color}$*${NC}"
+    fi
+}
+
+line() {
+    local color="${1:-BLUE}"
+    local term_width
+    local sep
+    local line_color
+
+    term_width=$(tput cols 2>/dev/null || echo 70)
+    sep=$(printf '%*s' "$term_width" '' | tr ' ' '-')
+
+    case "$color" in
+        RED) line_color="$RED";;
+        GREEN) line_color="$GREEN";;
+        YELLOW) line_color="$YELLOW";;
+        BLUE) line_color="$BLUE";;
+        CYAN) line_color="$CYAN";;
+        *) line_color="$NC";;
+    esac
+    printf "%b\n" "${line_color}${sep}${NC}"
+}
+
+# ----------------------------
+# Error trap for uncaught errors
+# ----------------------------
+trap 'echo "$(date +%Y-%m-%d\ %H:%M:%S) - Unexpected error at line $LINENO" | tee -a "$ERROR_LOG" >&2' ERR
+
+# ----------------------------
+# Environment
+# ----------------------------
+cd /home/container || { msg RED "Failed to change directory to /home/container."; exit 1; }
+
 sleep 1
 
-# Default the TZ environment variable to UTC.
+# Default the TZ environment variable to UTC
 TZ=${TZ:-UTC}
 export TZ
 
@@ -21,25 +72,39 @@ export TZ
 INTERNAL_IP=$(ip route get 1 | awk '{print $(NF-2);exit}')
 export INTERNAL_IP
 
-# set this variable, dotnet needs it even without it it reports to `dotnet --info` it can not start any aplication without this
+# Set DOTNET_ROOT - required for dotnet to function properly
 export DOTNET_ROOT=/usr/share/
 
-# system informations
-echo -e "${BLUE}---------------------------------------------------------------------${NC}"
-echo -e "${RED}DotNet Image by gOOvER - https://discord.goover.dev${NC}"
-echo -e "${RED}THIS IMAGE IS LICENSED UNDER AGPLv3${NC}"
-echo -e "${BLUE}---------------------------------------------------------------------${NC}"
-echo -e "${YELLOW}Linux Distribution: ${RED} $(. /etc/os-release ; echo $PRETTY_NAME)${NC}"
-echo -e "${YELLOW}Current timezone: ${RED} $(cat /etc/timezone)${NC}"
-echo -e "${BLUE}---------------------------------------------------------------------${NC}"
-echo -e "${YELLOW}DotNet Version: ${RED} $(dotnet --version) ${NC}"
-echo -e "${BLUE}---------------------------------------------------------------------${NC}"
+# ----------------------------
+# System Info
+# ----------------------------
+LINUX=$(. /etc/os-release 2>/dev/null && echo "$PRETTY_NAME" || echo "Unknown")
+TIMEZONE=$(if [ -f /etc/timezone ]; then cat /etc/timezone; elif [ -L /etc/localtime ]; then readlink /etc/localtime | sed 's|.*/zoneinfo/||'; else echo "$TZ"; fi)
+DOTNET_VER=$(dotnet --version 2>/dev/null || echo ".NET not found")
 
+# ----------------------------
+# Banner
+# ----------------------------
+clear
+line BLUE
+msg RED ".NET SDK Image by gOOvER - https://discord.goover.dev"
+msg RED "THIS IMAGE IS LICENSED UNDER AGPLv3"
+line BLUE
+msg YELLOW "Linux Distribution: ${RED}$LINUX"
+msg YELLOW "Current timezone: ${RED}$TIMEZONE"
+msg YELLOW ".NET Version: ${RED}$DOTNET_VER"
+line BLUE
 
-# Replace Startup Variables
-MODIFIED_STARTUP=$(echo ${STARTUP} | sed -e 's/{{/${/g' -e 's/}}/}/g')
-echo -e ":/home/container$ ${MODIFIED_STARTUP}"
+# ----------------------------
+# Startup command
+# ----------------------------
+# Replace {{VAR}} with ${VAR} syntax for variable expansion
+# Using envsubst for safe variable substitution (prevents command injection)
+PARSED=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g' | envsubst)
 
-# Run the Server
-eval ${MODIFIED_STARTUP}
+msg CYAN ":/home/container$ ${PARSED}"
+
+# Execute the startup command
+# shellcheck disable=SC2086
+exec env ${PARSED}
 

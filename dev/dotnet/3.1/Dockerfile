@@ -1,53 +1,62 @@
-FROM    	--platform=$TARGETOS/$TARGETARCH debian:bookworm-slim
+FROM        --platform=$TARGETOS/$TARGETARCH debian:bullseye-slim
 
 LABEL       org.opencontainers.image.authors="info@goover.de"
-LABEL       org.opencontainers.image.source="https://github.com/gOOvER/own-pterodactyl-images"
+LABEL       org.opencontainers.image.source="https://github.com/gOOvER/pelican-ptero-images"
 LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
+LABEL       org.opencontainers.image.title="Pelican Image - .NET Core SDK 3.1"
 LABEL       org.opencontainers.image.description="Docker image for Pelican Hosting Panel and Pterodactyl"
+LABEL       org.opencontainers.image.vendor="gOOvER"
+LABEL       org.opencontainers.image.url="https://github.com/gOOvER/pelican-ptero-images"
+LABEL       org.opencontainers.image.documentation="https://github.com/gOOvER/pelican-ptero-images/blob/main/README.md"
+LABEL       org.opencontainers.image.base.name="debian:bullseye-slim"
+
 ARG         DEBIAN_FRONTEND=noninteractive
 
-RUN         apt update \
-             && apt -y upgrade
-
-RUN         apt install -y --no-install-recommends \
+## Install dependencies, .NET SDK, configure locale, and cleanup in single layer
+RUN         apt-get update \
+            && apt-get upgrade -y \
+            && apt-get install -y --no-install-recommends \
+                acl \
                 apt-transport-https \
-				acl \
-				ca-certificates \
-				curl \
-				gnupg \
+                ca-certificates \
+                curl \
+                gettext-base \
+                gnupg \
                 iproute2 \
-				libc6 \
+                libc6 \
+                libgdiplus \
                 locales \
                 sqlite3 \
                 tini \
                 wget \
-				libgdiplus \
-			&& rm -rf /var/lib/apt/lists/*
+            ## Install .NET SDK 3.1 (EOL - legacy support only)
+            && wget -q https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh \
+            && chmod +x /tmp/dotnet-install.sh \
+            && /tmp/dotnet-install.sh -i /usr/share/dotnet -c 3.1 \
+            && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet \
+            ## Configure locale
+            && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+            && locale-gen \
+            ## Cleanup
+            && rm -f /tmp/dotnet-install.sh \
+            && apt-get clean \
+            && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-## install dotnet
-RUN          wget https://dot.net/v1/dotnet-install.sh \
-            	&& D_V="$(curl -sSL https://dotnet.microsoft.com/en-us/download/dotnet/3.1 | grep -i  '<h3 id="sdk-3.*">SDK 3.1.*.*</h3>'  | head -1 | awk -F\" '{print $3}' | awk '{print $2;}' | sed 's/<\/h3>//g')" \
-            	&& chmod +x dotnet-install.sh \
-				&& ./dotnet-install.sh -i /usr/share -v $D_V \
-            	&& ln -s /usr/share/dotnet /usr/bin/dotnet
-
-# Set the locale
-RUN         sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-            locale-gen
+## Environment
 ENV         LANG=en_US.UTF-8
 ENV         LANGUAGE=en_US:en
 ENV         LC_ALL=en_US.UTF-8
+ENV         DOTNET_ROOT=/usr/share/dotnet
 
 ## Setup user and working directory
 RUN         useradd -m -d /home/container -s /bin/bash container
+
 USER        container
 ENV         USER=container HOME=/home/container
 WORKDIR     /home/container
 
-# Sets the default stop signal as wings can (currently) only send a kill or generic stop
-STOPSIGNAL SIGINT
+STOPSIGNAL  SIGINT
 
-COPY        --chown=container:container ../entrypoint.sh /entrypoint.sh
-RUN         chmod +x /entrypoint.sh
+COPY        --chown=container:container --chmod=755 ../entrypoint.sh /entrypoint.sh
 ENTRYPOINT  ["/usr/bin/tini", "-g", "--"]
 CMD         ["/entrypoint.sh"]

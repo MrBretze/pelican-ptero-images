@@ -1,7 +1,7 @@
 FROM --platform=$TARGETOS/$TARGETARCH mongo:7-jammy
 
 LABEL org.opencontainers.image.authors="info@goover.de" \
-      org.opencontainers.image.source="https://github.com/gOOvER/own-pterodactyl-images" \
+      org.opencontainers.image.source="https://github.com/gOOvER/pelican-ptero-images" \
       org.opencontainers.image.licenses=AGPL-3.0-or-later \
       org.opencontainers.image.description="Docker image for Pelican Hosting Panel and Pterodactyl"
 
