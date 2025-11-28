@@ -5,8 +5,13 @@ Docker Images for the Hosting Panel Pelican, Jexactyl & Pterodactyl created by g
 A curated collection of core images that can be used with Pterodactyl's Egg system. Each image is rebuilt
 periodically to ensure dependencies are always up-to-date.
 
-[![Discord](https://img.shields.io/discord/YOUR_DISCORD_ID?label=Discord&logo=discord&logoColor=white)](https://discord.goover.dev)
+[![Discord](https://img.shields.io/discord/1074296920708436029?label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/RmqSeYBQ4y)
 [![License](https://img.shields.io/github/license/gOOvER/own-pterodactyl-images)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/gOOvER/own-pterodactyl-images?style=flat&logo=github)](https://github.com/gOOvER/own-pterodactyl-images/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/gOOvER/own-pterodactyl-images?style=flat&logo=github)](https://github.com/gOOvER/own-pterodactyl-images/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/gOOvER/own-pterodactyl-images)](https://github.com/gOOvER/own-pterodactyl-images/issues)
+[![GitHub Last Commit](https://img.shields.io/github/last-commit/gOOvER/own-pterodactyl-images)](https://github.com/gOOvER/own-pterodactyl-images/commits)
+[![Maintenance](https://img.shields.io/maintenance/yes/2025)](https://github.com/gOOvER/own-pterodactyl-images)
 
 ---
 
@@ -556,5 +561,5 @@ This project is licensed under the AGPL-3.0-or-later License - see the [LICENSE]
 
 ## 💬 Support
 
-- Discord: [discord.goover.dev](https://discord.goover.dev)
+- Discord: [discord.com/invite/RmqSeYBQ4y](https://discord.com/invite/RmqSeYBQ4y)
 - Issues: [GitHub Issues](https://github.com/gOOvER/own-pterodactyl-images/issues)
