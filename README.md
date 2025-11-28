@@ -5,7 +5,7 @@ Docker Images for the Hosting Panel Pelican, Jexactyl & Pterodactyl created by g
 A curated collection of core images that can be used with Pterodactyl's Egg system. Each image is rebuilt
 periodically to ensure dependencies are always up-to-date.
 
-[![Discord](https://img.shields.io/discord/1074296920708436029?label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/RmqSeYBQ4y)
+[![Discord](https://img.shields.io/discord/1158000498952126464?label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/RmqSeYBQ4y)
 [![License](https://img.shields.io/github/license/gOOvER/own-pterodactyl-images)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/gOOvER/own-pterodactyl-images?style=flat&logo=github)](https://github.com/gOOvER/own-pterodactyl-images/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/gOOvER/own-pterodactyl-images?style=flat&logo=github)](https://github.com/gOOvER/own-pterodactyl-images/network/members)
