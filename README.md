@@ -321,7 +321,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/mariadb` | [![build mariadb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-mariadb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-mariadb.yml) | MariaDB Database Server |
+| `goover/mariadb` | [![build mariadb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-mariadb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-mariadb.yml) | MariaDB Database Server |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -339,7 +339,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/postgres` | [![build postgres](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-postgres.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-postgres.yml) | PostgreSQL Database Server |
+| `goover/postgres` | [![build postgres](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-postgres.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-postgres.yml) | PostgreSQL Database Server |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -358,7 +358,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/mongodb` | [![build mongodb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-mongodb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-mongodb.yml) | MongoDB Database Server |
+| `goover/mongodb` | [![build mongodb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-mongodb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-mongodb.yml) | MongoDB Database Server |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -372,7 +372,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/redis` | [![build redis](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-redis.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-redis.yml) | Redis In-Memory Database |
+| `goover/redis` | [![build redis](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-redis.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-redis.yml) | Redis In-Memory Database |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -386,7 +386,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/keydb` | [![build keydb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-keydb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-keydb.yml) | KeyDB (Redis Fork) |
+| `goover/keydb` | [![build keydb](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-keydb.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-keydb.yml) | KeyDB (Redis Fork) |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -398,7 +398,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/cassandra` | [![build cassandra](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-cassandra.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/database-cassandra.yml) | Apache Cassandra Database |
+| `goover/cassandra` | [![build cassandra](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-cassandra.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/db-cassandra.yml) | Apache Cassandra Database |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
@@ -440,7 +440,7 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/wine` | [![build wine](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/wine.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/wine.yml) | Wine for Windows applications |
+| `goover/wine` | [![build wine](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/emu-wine.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/emu-wine.yml) | Wine for Windows applications |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
