@@ -132,10 +132,12 @@ periodically to ensure dependencies are always up-to-date.
 
 | Image | Status | Description |
 |-------|--------|-------------|
-| `goover/dotnet` | [![build dotnet](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-dotnet.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-dotnet.yml) | DotNet versions from `6` to `9` |
+| `goover/dotnet` | [![build dotnet](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-dotnet.yml/badge.svg)](https://github.com/gOOvER/pelican-ptero-images/actions/workflows/dev-dotnet.yml) | DotNet versions from `6` to `10` |
 
 | Image | URI | AMD64 | ARM64 |
 |-------|:---:|:-----:|:-----:|
+| dotnet:3.1 | `ghcr.io/goover/dotnet:3.1` | ✅ | ❌ |
+| dotnet:5 | `ghcr.io/goover/dotnet:5` | ✅ | ❌ |
 | dotnet:6 | `ghcr.io/goover/dotnet:6` | ✅ | ❌ |
 | dotnet:6-sdk | `ghcr.io/goover/dotnet:6-sdk` | ✅ | ❌ |
 | dotnet:7 | `ghcr.io/goover/dotnet:7` | ✅ | ❌ |
@@ -144,8 +146,6 @@ periodically to ensure dependencies are always up-to-date.
 | dotnet:8-sdk | `ghcr.io/goover/dotnet:8-sdk` | ✅ | ❌ |
 | dotnet:9 | `ghcr.io/goover/dotnet:9` | ✅ | ❌ |
 | dotnet:9-sdk | `ghcr.io/goover/dotnet:9-sdk` | ✅ | ❌ |
-| dotnet:3.1 | `ghcr.io/goover/dotnet:3.1` | ✅ | ❌ |
-| dotnet:5 | `ghcr.io/goover/dotnet:5` | ✅ | ❌ |
 | dotnet:10 | `ghcr.io/goover/dotnet:10` | ✅ | ❌ |
 
 ---
