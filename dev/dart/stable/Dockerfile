@@ -8,9 +8,6 @@ ENV         DEBIAN_FRONTEND noninteractive
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
-			&& apt-get clean \
-			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 				curl \
 				ca-certificates \
 				openssl \
@@ -23,7 +20,9 @@ RUN 		apt-get update \
 				iproute2 \
 				libfreetype6 \
 				font-manager \
-				ipset
+				ipset \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## Configure locale
 RUN          update-locale lang=en_US.UTF-8 \

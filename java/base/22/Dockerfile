@@ -9,9 +9,6 @@ LABEL       org.opencontainers.image.description="Docker image for Pelican Hosti
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
-			&& apt-get clean \
-			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 				ca-certificates \
 				curl \
 				ffmpeg \
@@ -25,7 +22,9 @@ RUN 		apt-get update \
 				sqlite3 \
 				tar \
 				tzdata \
-				libfreetype6
+				libfreetype6 \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set the locale
 RUN       	sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \

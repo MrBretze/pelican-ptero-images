@@ -11,9 +11,6 @@ RUN         dpkg --add-architecture i386
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
-			&& apt-get clean \
-			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
                     ca-certificates \
                     curl \
                     dbus \
@@ -78,7 +75,9 @@ RUN 		apt-get update \
                     libxi6 \
                     libxrandr2 \
                     libxss1 \
-                    libxtst6
+                    libxtst6 \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## install rcon
 RUN         cd /tmp/ \

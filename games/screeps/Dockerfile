@@ -8,9 +8,6 @@ LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
-			&& apt-get clean \
-			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
                 build-essential \
                 curl \
                 ffmpeg \
@@ -21,7 +18,9 @@ RUN 		apt-get update \
                 lsb-release \
                 netcat \
                 software-properties-common \
-                tcl
+                tcl \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## install nodejs
 RUN         mkdir -p /etc/apt/keyrings \

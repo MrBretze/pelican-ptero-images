@@ -9,9 +9,6 @@ LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
-			&& apt-get clean \
-			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 				build-essential \
 				ca-certificates \
 				curl \
@@ -27,7 +24,9 @@ RUN 		apt-get update \
 				tar \
 				tzdata \
 				libfreetype6 \
-				libstdc++6
+				libstdc++6 \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
 # Set the locale

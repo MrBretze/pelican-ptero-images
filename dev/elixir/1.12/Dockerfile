@@ -9,9 +9,6 @@ ARG         DEBIAN_FRONTEND=noninteractive
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
-			&& apt-get clean \
-			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
                 apt-transport-https \
                 build-essential \
                 ca-certificates \
@@ -28,7 +25,9 @@ RUN 		apt-get update \
                 tini \
                 tzdata \
                 wget \
-                zip
+                zip \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set the locale
 RUN         sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
