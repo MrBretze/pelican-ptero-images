@@ -2,7 +2,7 @@
 set -e
 
 ERROR_LOG="install_error.log"
-: > "$ERROR_LOG"  # Clear old log file (no-op)
+: > "$ERROR_LOG"
 
 # ----------------------------
 # Colors via tput
@@ -57,19 +57,17 @@ rotate_log() {
                 msg YELLOW "Failed to rotate; truncated $logfile"
             fi
             # optionally clean up old archives
-            if command -v ls &>/dev/null; then
-                local files
-                files=$(ls -1t ${logfile}.*.gz 2>/dev/null || true)
-                if [ -n "$files" ]; then
-                    local idx=0
-                    for f in $files; do
-                        idx=$((idx+1))
-                        if [ $idx -gt $keep ]; then
-                            rm -f "$f" || true
-                            msg YELLOW "Removed old rotated log $f"
-                        fi
-                    done
-                fi
+            local files
+            files=$(ls -1t "${logfile}".*.gz 2>/dev/null || true)
+            if [ -n "$files" ]; then
+                local idx=0
+                while IFS= read -r f; do
+                    idx=$((idx+1))
+                    if [ "$idx" -gt "$keep" ]; then
+                        rm -f "$f" || true
+                        msg YELLOW "Removed old rotated log $f"
+                    fi
+                done <<< "$files"
             fi
         fi
     fi
@@ -135,7 +133,7 @@ line BLUE
 # ----------------------------
 # Environment
 # ----------------------------
-export TZ=${TZ:-UTC}
+export TZ="${TZ:-UTC}"
 internal_ip=$(ip route get 1 | awk '{print $(NF-2);exit}' 2>/dev/null || echo "127.0.0.1")
 export INTERNAL_IP="$internal_ip"
 export XDG_RUNTIME_DIR="/home/container/.config/xdg"
@@ -178,7 +176,7 @@ XVFB_LOG="$WINEPREFIX/logs/xvfb.log"
 # If an X server is already available on $DISPLAY, don't start a new one
 if ! xdpyinfo -display "$DISPLAY" &>/dev/null; then
     msg YELLOW "Starting Xvfb on $DISPLAY (${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x${DISPLAY_DEPTH})"
-    Xvfb "$DISPLAY" -screen 0 ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x${DISPLAY_DEPTH} &> "$XVFB_LOG" &
+    Xvfb "$DISPLAY" -screen 0 "${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x${DISPLAY_DEPTH}" &> "$XVFB_LOG" &
     XVFB_PID=$!
     sleep 1
     if ! kill -0 "$XVFB_PID" 2>/dev/null; then
@@ -219,7 +217,7 @@ else
     # Perform the entire import in a subshell so we never change the parent cwd
     (
         set -e
-        cd "$TMPDIR"
+        cd "$TMPDIR" || exit 1
         msg YELLOW "Downloading latest CA bundle..."
         if ! curl -fsSLo cacert.pem https://curl.se/ca/cacert.pem >>"$CERT_LOG" 2>&1; then
             msg RED "Failed to download CA bundle; see $CERT_LOG"
@@ -247,76 +245,51 @@ else
         for pem in cert*.pem; do
             [ -f "$pem" ] || continue
             if ! grep -q '-----BEGIN CERTIFICATE-----' "$pem" 2>>"$CERT_LOG"; then
-                msg YELLOW "Skipping $pem: missing BEGIN CERTIFICATE marker"
                 continue
             fi
             cer="${pem%.pem}.cer"
             if openssl x509 -inform PEM -in "$pem" -outform DER -out "$cer" >>"$CERT_LOG" 2>&1; then
-                if wine rundll32.exe cryptext.dll,CryptExtAddCer "$(pwd)/$cer" >>"$CERT_LOG" 2>&1; then
-                    msg GREEN "Imported certificate: $cer"
-                else
-                    msg YELLOW "rundll32 reported non-zero for $cer; continuing (see $CERT_LOG)"
-                fi
-            else
-                msg RED "Failed to convert $pem to DER; see $CERT_LOG"
+                wine rundll32.exe cryptext.dll,CryptExtAddCer "$(pwd)/$cer" >>"$CERT_LOG" 2>&1 || true
             fi
         done
         msg GREEN "Certificate import finished (logs: $CERT_LOG)"
-        # cleanup inside subshell
-        rm -rf "$TMPDIR" || true
     )
     # ensure TMPDIR removed in case subshell exited early
     rm -rf "$TMPDIR" >/dev/null 2>&1 || true
 fi
-
-    # Ensure we are back in the container home directory so relative paths used later still work
-    cd /home/container || true
 
 # NOTE: 64-bit is the default (WINEARCH=win64). No automatic 32-bit enforcement is performed.
 
 # ----------------------------
 # Wine Gecko Installation
 # ----------------------------
-if [[ $WINETRICKS_RUN =~ gecko ]]; then
+if [[ "$WINETRICKS_RUN" =~ gecko ]]; then
     line BLUE
     msg YELLOW "Installing Wine Gecko"
     line BLUE
     WINETRICKS_RUN=$(remove_token_from_list "$WINETRICKS_RUN" gecko)
 
-    # Dynamische Version
     GECKO_VERSION=$(curl -s https://api.github.com/repos/wine-mirror/wine/releases/latest | grep -Po '"tag_name": "\K.*?(?=")' || echo "2.47.4")
     GECKO_BASE="https://dl.winehq.org/wine/wine-gecko/${GECKO_VERSION}"
-    GECKO_X86="$GECKO_BASE/wine-gecko-${GECKO_VERSION}-x86.msi"
-    GECKO_X64="$GECKO_BASE/wine-gecko-${GECKO_VERSION}-x86_64.msi"
 
-    # download with retries and size check
-    mkdir -p "$WINEPREFIX"
-    if [ ! -s "$WINEPREFIX/gecko_x86.msi" ]; then
-        msg YELLOW "Downloading Gecko x86 from ${GECKO_X86}"
-        if ! wget -q --tries=3 --timeout=30 -O "$WINEPREFIX/gecko_x86.msi" "$GECKO_X86"; then
-            msg RED "Failed to download Gecko x86 from $GECKO_X86"
+    # download and install both architectures
+    for arch in x86 x86_64; do
+        MSI_FILE="$WINEPREFIX/gecko_${arch}.msi"
+        if [ ! -s "$MSI_FILE" ]; then
+            msg YELLOW "Downloading Gecko ${arch}..."
+            if ! wget -q --tries=3 --timeout=30 -O "$MSI_FILE" "${GECKO_BASE}/wine-gecko-${GECKO_VERSION}-${arch}.msi"; then
+                msg RED "Failed to download Gecko ${arch}"
+                exit 1
+            fi
         fi
-    fi
-    if [ ! -s "$WINEPREFIX/gecko_x86_64.msi" ]; then
-        msg YELLOW "Downloading Gecko x64 from ${GECKO_X64}"
-        if ! wget -q --tries=3 --timeout=30 -O "$WINEPREFIX/gecko_x86_64.msi" "$GECKO_X64"; then
-            msg RED "Failed to download Gecko x64 from $GECKO_X64"
+        if [ -s "$MSI_FILE" ]; then
+            wine msiexec /i "$MSI_FILE" /qn /norestart /log "$WINEPREFIX/gecko_${arch}_install.log" || \
+                msg RED "Wine Gecko ${arch} installation failed! See $WINEPREFIX/gecko_${arch}_install.log"
+        else
+            msg RED "Gecko ${arch} MSI missing or empty: $MSI_FILE"
+            exit 1
         fi
-    fi
-
-    # verify files and install
-    if [ -s "$WINEPREFIX/gecko_x86.msi" ]; then
-        wine msiexec /i "$WINEPREFIX/gecko_x86.msi" /qn /norestart /log "$WINEPREFIX/gecko_x86_install.log" || msg RED "Wine Gecko x86 installation failed! See $WINEPREFIX/gecko_x86_install.log"
-    else
-        msg RED "Gecko x86 MSI missing or empty: $WINEPREFIX/gecko_x86.msi"
-        exit 1
-    fi
-    if [ -s "$WINEPREFIX/gecko_x86_64.msi" ]; then
-        wine msiexec /i "$WINEPREFIX/gecko_x86_64.msi" /qn /norestart /log "$WINEPREFIX/gecko_x86_64_install.log" || msg RED "Wine Gecko x64 installation failed! See $WINEPREFIX/gecko_x86_64_install.log"
-    else
-        msg RED "Gecko x64 MSI missing or empty: $WINEPREFIX/gecko_x86_64.msi"
-        exit 1
-    fi
+    done
 fi
 
 # ----------------------------
@@ -350,7 +323,7 @@ if [[ "$WINETRICKS_RUN" =~ mono ]]; then
             attempts=0
             max_attempts=3
             rc=1
-            while [ $attempts -lt $max_attempts ]; do
+            while [ "$attempts" -lt "$max_attempts" ]; do
                 attempts=$((attempts+1))
                 msg YELLOW "Attempt $attempts to install Wine Mono..."
                 if wine msiexec /i "$WINEPREFIX/mono.msi" /qn /norestart /log "$WINEPREFIX/mono_install.log"; then
@@ -362,7 +335,7 @@ if [[ "$WINETRICKS_RUN" =~ mono ]]; then
                     sleep 3
                 fi
             done
-            if [ $rc -ne 0 ]; then
+            if [ "$rc" -ne 0 ]; then
                     msg RED "Wine Mono installation failed after $max_attempts attempts. See $WINEPREFIX/mono_install.log"
                     exit 1
             fi
@@ -428,7 +401,7 @@ if [ -n "${WINETRICKS_RUN// }" ]; then
                 if [[ "$trick" =~ dotnet ]]; then
                     msg YELLOW "Detected dotnet trick: running winetricks for diagnostics"
                     # Choose WINEDEBUG level: full 'all' only when DEBUG_DOTNET=1 is set by user
-                    WINEDEBUG_LEVEL=${DEBUG_DOTNET:-0}
+                    WINEDEBUG_LEVEL="${DEBUG_DOTNET:-0}"
                     if [ "$WINEDEBUG_LEVEL" -eq 1 ]; then
                         DBG_ENV="WINEDEBUG=all"
                     else
@@ -475,17 +448,11 @@ if [ -n "${WINETRICKS_RUN// }" ]; then
                         fi
                     fi
                 else
-                    # Try a non-interactive install where supported (-q), fall back if not
                     if winetricks -q "$trick" &> "$LOGFILE"; then
                         msg GREEN "Winetricks: $trick installed successfully (log: $LOGFILE)"
                     else
-                        # Try without -q in case the option is not supported
-                        if winetricks "$trick" &>> "$LOGFILE"; then
-                            msg GREEN "Winetricks: $trick installed successfully (log: $LOGFILE)"
-                        else
-                            msg RED "Winetricks installation for $trick failed! See $LOGFILE"
-                            exit 1
-                        fi
+                        msg RED "Winetricks installation for $trick failed! See $LOGFILE"
+                        exit 1
                     fi
                 fi
         done
@@ -495,77 +462,82 @@ fi
 # ----------------------------
 # SteamCMD / DepotDownloader Update
 # ----------------------------
-if [ -z "${STEAM_APPID:-}" ] && [ -n "${SRCDS_APPID:-}" ]; then
-    STEAM_APPID="$SRCDS_APPID"
-fi
-if [ -f ./DepotDownloader ]; then
-    line BLUE
-    msg YELLOW "Using DepotDownloader for updates"
-    line BLUE
-
-    : "${STEAM_USER:=anonymous}"  # Default anonymous user
-    : "${STEAM_PASS:=}"
-    : "${STEAM_AUTH:=}"
-
-    msg YELLOW "Steam user: ${GREEN}$STEAM_USER${NC}"
-
-    dd_args=( -dir . -username "$STEAM_USER" -password "$STEAM_PASS" -remember-password )
-    if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
-        dd_args+=( -os windows )
+## auto_update only if explicitly set to 1
+if [ "${AUTO_UPDATE:-}" = "1" ]; then
+    if [ -z "${STEAM_APPID:-}" ] && [ -n "${SRCDS_APPID:-}" ]; then
+        STEAM_APPID="$SRCDS_APPID"
     fi
-    dd_args+=( -app "$STEAM_APPID" )
-    if [ -n "${STEAM_BETAID:-}" ]; then
-        dd_args+=( -branch "$STEAM_BETAID" )
-    fi
-    if [ -n "${STEAM_BETAPASS:-}" ]; then
-        dd_args+=( -branchpassword "$STEAM_BETAPASS" )
-    fi
-    ./DepotDownloader "${dd_args[@]}"
+    if [ -f ./DepotDownloader ]; then
+        line BLUE
+        msg YELLOW "Using DepotDownloader for updates"
+        line BLUE
 
-    mkdir -p .steam/sdk64
-    dd_sdk_args=( -dir .steam/sdk64 -app 1007 )
-    if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
-        dd_sdk_args+=( -os windows )
-    fi
-    ./DepotDownloader "${dd_sdk_args[@]}"
+        : "${STEAM_USER:=anonymous}"  # Default anonymous user
+        : "${STEAM_PASS:=}"
+        : "${STEAM_AUTH:=}"
 
-    chmod +x "$HOME"/*
+        msg YELLOW "Steam user: ${GREEN}$STEAM_USER${NC}"
+
+        dd_args=( -dir . -username "$STEAM_USER" -password "$STEAM_PASS" -remember-password )
+        if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
+            dd_args+=( -os windows )
+        fi
+        dd_args+=( -app "$STEAM_APPID" )
+        if [ -n "${STEAM_BETAID:-}" ]; then
+            dd_args+=( -branch "$STEAM_BETAID" )
+        fi
+        if [ -n "${STEAM_BETAPASS:-}" ]; then
+            dd_args+=( -branchpassword "$STEAM_BETAPASS" )
+        fi
+        ./DepotDownloader "${dd_args[@]}"
+
+        mkdir -p .steam/sdk64
+        dd_sdk_args=( -dir .steam/sdk64 -app 1007 )
+        if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
+            dd_sdk_args+=( -os windows )
+        fi
+        ./DepotDownloader "${dd_sdk_args[@]}"
+    else
+        line BLUE
+        msg YELLOW "Using SteamCMD for updates"
+        line BLUE
+
+        : "${STEAM_USER:=anonymous}"  # Default anonymous user
+        : "${STEAM_PASS:=}"
+        : "${STEAM_AUTH:=}"
+
+        msg YELLOW "Steam user: ${GREEN}$STEAM_USER${NC}"
+
+        sc_args=( +force_install_dir /home/container +login "$STEAM_USER" "$STEAM_PASS" "$STEAM_AUTH" )
+        if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
+            sc_args+=( +@sSteamCmdForcePlatformType windows )
+        fi
+        if [ "${STEAM_SDK:-0}" = "1" ]; then
+            sc_args+=( +app_update 1007 )
+        fi
+        sc_args+=( +app_update "$STEAM_APPID" )
+        if [ -n "${STEAM_BETAID:-}" ]; then
+            sc_args+=( -beta "$STEAM_BETAID" )
+        fi
+        if [ -n "${STEAM_BETAPASS:-}" ]; then
+            sc_args+=( -branchpassword "$STEAM_BETAPASS" )
+        fi
+        if [ -n "${INSTALL_FLAGS:-}" ]; then
+            IFS=' ' read -r -a extra_flags <<<"$INSTALL_FLAGS"
+            sc_args+=( "${extra_flags[@]}" )
+        fi
+        if [ "${VALIDATE:-0}" = "1" ]; then
+            sc_args+=( validate )
+        fi
+        sc_args+=( +quit )
+        if ! ./steamcmd/steamcmd.sh "${sc_args[@]}"; then
+            msg RED "SteamCMD failed!"
+        fi
+    fi
 else
     line BLUE
-    msg YELLOW "Using SteamCMD for updates"
+    msg YELLOW "Auto Update is disabled. Skipping update..."
     line BLUE
-
-    : "${STEAM_USER:=anonymous}"  # Default anonymous user
-    : "${STEAM_PASS:=}"
-    : "${STEAM_AUTH:=}"
-
-    msg YELLOW "Steam user: ${GREEN}$STEAM_USER${NC}"
-
-    sc_args=( +force_install_dir /home/container +login "$STEAM_USER" "$STEAM_PASS" "$STEAM_AUTH" )
-    if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
-        sc_args+=( +@sSteamCmdForcePlatformType windows )
-    fi
-    if [ "${STEAM_SDK:-0}" = "1" ]; then
-        sc_args+=( +app_update 1007 )
-    fi
-    sc_args+=( +app_update "$STEAM_APPID" )
-    if [ -n "${STEAM_BETAID:-}" ]; then
-        sc_args+=( -beta "$STEAM_BETAID" )
-    fi
-    if [ -n "${STEAM_BETAPASS:-}" ]; then
-        sc_args+=( -betapassword "$STEAM_BETAPASS" )
-    fi
-    if [ -n "${INSTALL_FLAGS:-}" ]; then
-        IFS=' ' read -r -a extra_flags <<<"$INSTALL_FLAGS"
-        sc_args+=( "${extra_flags[@]}" )
-    fi
-    if [ "${VALIDATE:-0}" = "1" ]; then
-        sc_args+=( validate )
-    fi
-    sc_args+=( +quit )
-    if ! ./steamcmd/steamcmd.sh "${sc_args[@]}"; then
-        msg RED "SteamCMD failed!"
-    fi
 fi
 
 # ----------------------------
@@ -574,6 +546,5 @@ fi
 MODIFIED_STARTUP=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g')
 msg CYAN ":/home/container$ $MODIFIED_STARTUP"
 
-# exec bash -c für komplexe Shell-Kommandos
 exec bash -c "$MODIFIED_STARTUP"
 
