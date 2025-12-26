@@ -104,6 +104,11 @@ msg YELLOW "Linux Distribution: ${RED}$LINUX"
 msg YELLOW "Kernel: ${RED}$(uname -r)"
 msg YELLOW "Current timezone: ${RED}$TIMEZONE"
 msg YELLOW "Proton Version: ${RED}$PROTON_VER"
+if command -v proton >/dev/null 2>&1; then
+    msg GREEN "Proton CLI available: ${RED}$(command -v proton)"
+else
+    msg YELLOW "Warning: Proton CLI not found in PATH"
+fi
 line BLUE
 
 # ----------------------------
@@ -128,7 +133,7 @@ if [ -n "${STEAM_APPID:-}" ]; then
     # Ensure all Steam/Proton directories live under /home/container/Steam
     # Create canonical steam directory and compatdata path
 	mkdir -p /home/container/Steam
-    mkdir -p /home/container/Steam/steamapps/compatdata/${STEAM_APPID}
+    mkdir -p "/home/container/Steam/steamapps/compatdata/${STEAM_APPID}"
     mkdir -p /home/container/Steam/compatibilitytools.d
 
 	export STEAM_DIR="/home/container/Steam"
@@ -214,14 +219,12 @@ fi
 # ----------------------------
 # SteamCMD / DepotDownloader Update
 # ----------------------------
+## auto_update only if explicitly set to 1
+if [ "${AUTO_UPDATE:-}" = "1" ]; then
 if [ -f ./DepotDownloader ]; then
     line BLUE
     msg YELLOW "Using DepotDownloader for updates"
     line BLUE
-
-    : "${STEAM_USER:=anonymous}"  # Default anonymous user
-    : "${STEAM_PASS:=}"
-    : "${STEAM_AUTH:=}"
 
     printf "${YELLOW}Steam user: ${GREEN}%s${NC}\n" "$STEAM_USER"
 
@@ -242,24 +245,20 @@ if [ -f ./DepotDownloader ]; then
         dd_args+=( -branchpassword "$STEAM_BETAPASS" )
     fi
 
-    ./DepotDownloader "${dd_args[@]}"
+    ./DepotDownloader "${dd_args[@]}" || printf "${RED:-}DepotDownloader failed${NC:-}\n"
 
     mkdir -p .steam/sdk64
     dd_sdk_args=( -dir .steam/sdk64 -app 1007 )
     if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
         dd_sdk_args+=( -os windows )
     fi
-    ./DepotDownloader "${dd_sdk_args[@]}"
+    ./DepotDownloader "${dd_sdk_args[@]}" || printf "${RED:-}DepotDownloader SDK download failed${NC:-}\n"
 
-    chmod +x "$HOME"/* || true
+    chmod +x "$HOME"/* 2>/dev/null || true
 else
     line BLUE
     msg YELLOW "Using SteamCMD for updates"
     line BLUE
-
-    : "${STEAM_USER:=anonymous}"  # Default anonymous user
-    : "${STEAM_PASS:=}"
-    : "${STEAM_AUTH:=}"
 
     printf "${YELLOW}Steam user: ${GREEN}%s${NC}\n" "$STEAM_USER"
 
@@ -292,8 +291,13 @@ else
             fi
             sc_args+=( +quit )
 
-            ./steamcmd/steamcmd.sh "${sc_args[@]}" || printf "${RED:-}SteamCMD faile${NC:-}C}\n"
+            ./steamcmd/steamcmd.sh "${sc_args[@]}" || printf "${RED:-}SteamCMD failed${NC:-}\n"
     fi
+fi
+else
+    line BLUE
+    msg YELLOW "Auto Update is disabled. Skipping update..."
+    line BLUE
 fi
 
 is_valid_steam_dir() {
@@ -304,7 +308,7 @@ is_valid_steam_dir() {
     # - compatibilitytools.d (for Proton compatibility tools)
     local dir="$1"
     # Check for Steam runtime folder 'ubuntu12_32' in a few common locations
-    RUNTIME_FOUND=0
+    local RUNTIME_FOUND=0
     if [ -d "$dir/ubuntu12_32" ] || [ -d "$dir/.steam/root/ubuntu12_32" ] || [ -d "$HOME/.steam/root/ubuntu12_32" ]; then
         RUNTIME_FOUND=1
     fi
