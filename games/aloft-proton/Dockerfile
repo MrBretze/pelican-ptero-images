@@ -17,9 +17,6 @@ RUN         dpkg --add-architecture i386
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
---no-install-recommends  \
-			&& apt-get clean \
-			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
                 alsa-tools \
 				ca-certificates \
                 cabextract \
@@ -61,15 +58,11 @@ RUN 		apt-get update \
                 libsdl1.2debian:i386 \
                 libsdl2-2.0-0 \
                 libsdl2-2.0-0:i386 \
-                openssl \
-                pulseaudio \
-                python3 \
                 libncurses5-dev:i386 \
                 libncurses6 \
                 libntlm0 \
 				libnss-wrapper \
                 libnss3 \
-                	steam \
                 libpulse0 \
                 libgstreamer1.0-dev \
                 libgstreamer-plugins-base1.0-dev \
@@ -83,7 +76,9 @@ RUN 		apt-get update \
                 gstreamer1.0-x \
                 gstreamer1.0-alsa \
                 gstreamer1.0-gl \
-                gstreamer1.0-pulseaudio
+                gstreamer1.0-pulseaudio \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Download Proton GE
 RUN         curl -sLOJ $(curl -s https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | grep browser_download_url | cut -d\" -f4 | egrep .tar.gz)
