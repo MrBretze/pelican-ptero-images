@@ -26,6 +26,7 @@ RUN 		apt-get update \
                 tar \
                 tini \
                 tzdata \
+                unzip \
                 wget \
                 zip \
 			&& apt-get clean \
