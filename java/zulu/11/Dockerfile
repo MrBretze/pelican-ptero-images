@@ -6,15 +6,14 @@ LABEL       org.opencontainers.image.description="Docker image for Pelican Hosti
 LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 
 
-RUN 		apt update -y \
-			&& apt -y upgrade
-
-RUN  		apt install -y \
-				build-essential \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
 				ca-certificates \
 				curl \
 				font-manager \
 				fontconfig \
+				fonts-dejavu-core \
 				git \
 				iproute2 \
 				ipset \
@@ -25,10 +24,9 @@ RUN  		apt install -y \
 				tar \
 				tzdata \
 				libfreetype6 \
-				libstdc++6
-
-RUN 		apt-get clean \
-			&& rm -rf /var/lib/apt/lists/*
+				libstdc++6 \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set the locale
 RUN       	sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
