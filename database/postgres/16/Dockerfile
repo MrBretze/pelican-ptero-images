@@ -5,10 +5,12 @@ LABEL       org.opencontainers.image.source="https://github.com/gOOvER/pelican-p
 LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 LABEL       org.opencontainers.image.description="Docker image for Pelican Hosting Panel and Pterodactyl"
 ENV         DEBIAN_FRONTEND noninteractive
-RUN         apt update \
-             && apt -y upgrade
-
-RUN         apt install -y \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
+\
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
                 netcat-openbsd \
                 iproute2 \
 				postgresql-16-postgis-3

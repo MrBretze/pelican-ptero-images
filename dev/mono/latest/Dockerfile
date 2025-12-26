@@ -8,10 +8,12 @@ LABEL       	org.opencontainers.image.description="Docker image for Pelican Host
 # Update the repository and install needed packages
 ARG         	DEBIAN_FRONTEND=noninteractive
 RUN         	dpkg --add-architecture i386
-RUN         	apt update \
-            	&& apt -y upgrade
-
-RUN         	apt install -y --install-recommends \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
+--install-recommends \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 					ca-certificates \
                     curl \
                     dbus \

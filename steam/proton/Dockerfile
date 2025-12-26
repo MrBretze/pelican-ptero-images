@@ -87,7 +87,7 @@ RUN set -eux; cd /tmp; \
     elif command -v wget >/dev/null 2>&1; then \
         PROTON_JSON=$(wget -qO- https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest || true); \
     else \
-        apt-get update || true; apt-get install -y --no-install-recommends curl || true; \
+        apt-get update && apt-get install -y --no-install-recommends curl && apt-get clean && rm -rf /var/lib/apt/lists/*; \
         PROTON_JSON=$(curl -sSf https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest || true); \
     fi; \
     PROTON_URL=""; \
@@ -105,7 +105,7 @@ RUN set -eux; cd /tmp; \
     elif command -v wget >/dev/null 2>&1; then \
         wget -qO proton-ge.tar.gz "$PROTON_URL"; \
     else \
-        apt-get update || true; apt-get install -y --no-install-recommends curl || true; \
+        apt-get update && apt-get install -y --no-install-recommends curl && apt-get clean && rm -rf /var/lib/apt/lists/*; \
         curl -sSL "$PROTON_URL" -o proton-ge.tar.gz; \
     fi; \
     if [ ! -s proton-ge.tar.gz ]; then echo "Downloaded Proton-GE archive is empty" >&2; ls -l proton-ge.tar.gz || true; exit 1; fi; \

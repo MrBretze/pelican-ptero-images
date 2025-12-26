@@ -6,9 +6,9 @@ LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 LABEL       org.opencontainers.image.description="Docker image for Pelican Hosting Panel and Pterodactyl"
 ARG         DEBIAN_FRONTEND=noninteractive
 
-RUN 		apt update -y
-RUN         apt -y upgrade
-RUN         apt install -y \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
                 apt-transport-https \
                 apt-utils \
                 ca-certificates \
@@ -26,12 +26,16 @@ RUN         apt install -y \
                 tar \
                 tzdata \
                 wget \
-                libfreetype6
+                libfreetype6 \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN         wget -O - https://apt.corretto.aws/corretto.key | gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg
-RUN         echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list
-RUN         apt update
-RUN         apt install -y java-1.8.0-amazon-corretto-jdk
+RUN         wget -O - https://apt.corretto.aws/corretto.key | gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg \
+			&& echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list \
+			&& apt-get update \
+			&& apt-get install -y --no-install-recommends java-1.8.0-amazon-corretto-jdk \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## configure locale
 RUN         sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \

@@ -9,103 +9,12 @@ LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 ARG         DEBIAN_FRONTEND=noninteractive
 #COPY        sources.list /etc/apt/sources.list
 RUN         dpkg --add-architecture i386
-RUN         apt update \
-            && apt -y upgrade
-
-RUN         apt install -y --install-recommends \
-                    ca-certificates \
-                    curl \
-                    dbus \
-                    dirmngr \
-                    g++ \
-                    gcc \
-                    gcc-12-base \
-                    gdb \
-                    gettext \
-                    git \
-                    gnupg \
-                    iproute2 \
-                    jq \
-                    locales \
-                    mesa-utils \
-                    net-tools \
-                    netcat-openbsd \
-                    numactl \
-                    psmisc \
-                    python3 \
-                    python3-dev \
-                    python3-pip \
-                    sed \
-                    software-properties-common \
-                    speex:i386 \
-                    tar \
-                    telnet \
-                    tini \
-                    tzdata \
-                    wget \
-                    lib32gcc-s1 \
-                    lib32stdc++6 \
-                    lib32tinfo6 \
-					libasound2 \
-                    libtinfo6:i386 \
-                    lib32z1 \
-                    liboss4-salsa-asound2 \
-                    libatk1.0-0 \
-                    libatomic1 \
-                    libc++-dev \
-                    libc++1 \
-                    libc6 \
-                    libc6:i386 \
-                    libcurl3-gnutls \
-                    libcurl3-gnutls:i386 \
-                    libcurl4 \
-                    libcurl4-gnutls-dev \
-                    libcurl4-gnutls-dev:i386 \
-                    libcurl4:i386 \
-                    libfontconfig \
-                    libgcc-s1 \
-                    libgcc1 \
-                    libgdiplus \
-                    libgtk2.0-0:i386 \
-                    libjemalloc2 \
-                    libjemalloc2:i386 \
-                    libnss-wrapper \
-                    libnss3 \
-                    libpangocairo-1.0-0 \
-                    libpulse-dev \
-                    libpulse0 \
-                    libsdl1.2-compat \
-                    libsdl1.2debian \
-                    libssl3 \
-                    libssl3:i386 \
-                    libstdc++6 \
-                    libstdc++6:i386 \
-                    libtcmalloc-minimal4 \
-                    libtinfo6:i386 \
-                    libxcomposite1 \
-                    libxcursor1 \
-                    libxdamage1 \
-                    libxi6 \
-                    libxrandr2 \
-                    libxss1 \
-                    libxtst6
-
-## install dotnet to support STEAM dotnet games
-RUN         apt update -y \
-                && apt upgrade -y \
-                && wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
-                && dpkg -i packages-microsoft-prod.deb \
-                && rm packages-microsoft-prod.deb \
-                && apt update -y \
-                && apt install -y \
-                    aspnetcore-runtime-8.0 \
-                    dotnet-sdk-8.0
-
-## install Mono
-RUN         gpg --homedir /tmp --no-default-keyring --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-RUN         echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/debian stable-buster main" | tee /etc/apt/sources.list.d/mono-official-stable.list
-RUN         apt update
-RUN         apt install -y mono-complete
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
+--install-recommends \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## install rcon
 RUN         cd /tmp/ \

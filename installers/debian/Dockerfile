@@ -8,10 +8,12 @@ LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 ## update base packages
 ARG         DEBIAN_FRONTEND noninteractive
 RUN        	dpkg --add-architecture i386
-RUN         apt update \
-			&& apt -y upgrade
-
-RUN		 	apt install -y --no-install-recommends \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
+--no-install-recommends \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 				build-essential \
 				ca-certificates \
 				curl \

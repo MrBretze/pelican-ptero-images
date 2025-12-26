@@ -7,9 +7,9 @@ LABEL       org.opencontainers.image.description="Docker image for Pelican Hosti
 
 ARG         DEBIAN_FRONTEND=noninteractive
 
-RUN 		apt update -y
-RUN         apt -y upgrade
-RUN         apt install -y \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
                 apt-transport-https \
                 apt-utils \
                 ca-certificates \
@@ -27,12 +27,16 @@ RUN         apt install -y \
                 tar \
                 tzdata \
                 wget \
-                libfreetype6
+                libfreetype6 \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN         wget -O- -q https://apt.corretto.aws/corretto.key | apt-key add -
-RUN         add-apt-repository 'deb https://apt.corretto.aws stable main'
-RUN         apt update
-RUN         apt install -y java-23-amazon-corretto-jdk
+RUN         wget -O- -q https://apt.corretto.aws/corretto.key | apt-key add - \
+			&& add-apt-repository 'deb https://apt.corretto.aws stable main' \
+			&& apt-get update \
+			&& apt-get install -y --no-install-recommends java-23-amazon-corretto-jdk \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## configure locale
 RUN         sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \

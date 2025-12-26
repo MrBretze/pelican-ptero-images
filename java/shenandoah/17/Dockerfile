@@ -4,10 +4,12 @@ LABEL   	author="Torsten Widmann" maintainer="info@goover.de"
 LABEL   	org.opencontainers.image.source="https://github.com/gOOvER/pelican-ptero-images"
 LABEL   	org.opencontainers.image.licenses=MIT
 
-RUN 		apt update -y \
-			&& apt -y upgrade
-
-RUN  		apt install -y \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
+\
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 				ca-certificates \
 				curl \
 				font-manager \

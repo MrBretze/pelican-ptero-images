@@ -5,10 +5,12 @@ LABEL       org.opencontainers.image.source="https://github.com/gOOvER/pelican-p
 LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 LABEL       org.opencontainers.image.description="Docker image for Pelican Hosting Panel and Pterodactyl"
 
-RUN 		apt update -y \
-			&& apt -y upgrade
-
-RUN  		apt install -y \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
+\
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 				ca-certificates \
 				curl \
 				ffmpeg \

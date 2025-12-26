@@ -6,10 +6,9 @@ LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 LABEL       org.opencontainers.image.description="Docker image for Pelican Hosting Panel and Pterodactyl"
 
 
-RUN 		apt update -y \
-			&& apt -y upgrade
-
-RUN  		apt install -y \
+RUN 		apt-get update \
+			&& apt-get upgrade -y \
+			&& apt-get install -y --no-install-recommends \
 				ca-certificates \
 				curl \
 				ffmpeg \
@@ -23,7 +22,9 @@ RUN  		apt install -y \
 				sqlite3 \
 				tar \
 				tzdata \
-				libfreetype6
+				libfreetype6 \
+			&& apt-get clean \
+			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set the locale
 RUN       	sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
