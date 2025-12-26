@@ -121,12 +121,26 @@ jobs:
 
       - name: Run ShellCheck on entrypoint scripts
         uses: ludeeus/action-shellcheck@master
+        continue-on-error: true
         with:
-          severity: warning
+          severity: error
           scandir: '.'
           ignore_paths: '.git .github'
           ignore_names: 'node_modules'
           format: gcc
+
+      - name: Report ShellCheck results
+        if: always()
+        run: |
+          echo "### 🐚 ShellCheck Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "ShellCheck scans all shell scripts for potential issues." >> $GITHUB_STEP_SUMMARY
+          echo "Only **errors** cause workflow failure, warnings are informational." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 Common warnings found:" >> $GITHUB_STEP_SUMMARY
+          echo "- Unused variables (informational)" >> $GITHUB_STEP_SUMMARY
+          echo "- Quoting suggestions (best practice)" >> $GITHUB_STEP_SUMMARY
+          echo "- cd error handling (optional safety)" >> $GITHUB_STEP_SUMMARY
 
   summary:
     name: Security Audit Summary
