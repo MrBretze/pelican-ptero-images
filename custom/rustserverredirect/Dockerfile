@@ -11,8 +11,6 @@ ARG         DEBIAN_FRONTEND=noninteractive
 RUN         dpkg --add-architecture i386
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
-			&& apt-get install -y --no-install-recommends \
---install-recommends \
 			&& apt-get clean \
 			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
