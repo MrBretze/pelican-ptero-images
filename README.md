@@ -271,6 +271,8 @@ periodically to ensure dependencies are always up-to-date.
 | java:zulu_21 | `ghcr.io/goover/java:zulu_21` | ✅ | ✅ |
 | java:zulu_22 | `ghcr.io/goover/java:zulu_22` | ✅ | ✅ |
 | java:zulu_23 | `ghcr.io/goover/java:zulu_23` | ✅ | ✅ |
+| java:zulu_24 | `ghcr.io/goover/java:zulu_24` | ✅ | ✅ |
+| java:zulu_25 | `ghcr.io/goover/java:zulu_25` | ✅ | ✅ |
 
 ---
 
