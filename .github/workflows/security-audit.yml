@@ -1,0 +1,151 @@
+name: Container Security Audit
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # Run weekly on Monday at 00:00 UTC
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dockerfile-scan:
+    name: Dockerfile Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner on ALL Dockerfiles
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-dockerfile-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+
+      - name: Upload Trivy Dockerfile results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-dockerfile-results.sarif'
+          category: 'dockerfile-security'
+
+      - name: Generate Dockerfile summary
+        run: |
+          echo "### 📋 Dockerfile Security Scan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Scanned all Dockerfiles for misconfigurations (no build required)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          DOCKERFILE_COUNT=$(find . -name "Dockerfile" -not -path "./.git/*" | wc -l)
+          echo "Total Dockerfiles scanned: $DOCKERFILE_COUNT" >> $GITHUB_STEP_SUMMARY
+
+  container-image-scan:
+    name: Sample Container Image Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select sample images
+        id: select-samples
+        run: |
+          # Sample representative images from different categories
+          SAMPLES='["java/zulu/21", "steam/proton", "dev/nodejs/22", "python/3.12"]'
+          echo "matrix=$SAMPLES" >> $GITHUB_OUTPUT
+          echo "### 🎲 Sample Image Scan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Scanning sample images to verify base image security." >> $GITHUB_STEP_SUMMARY
+          echo "This runs only on manual trigger or weekly schedule." >> $GITHUB_STEP_SUMMARY
+    outputs:
+      matrix: ${{ steps.select-samples.outputs.matrix }}
+
+  scan-images:
+    name: Scan ${{ matrix.image-path }}
+    runs-on: ubuntu-latest
+    needs: container-image-scan
+    if: needs.container-image-scan.result == 'success'
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        image-path: ${{ fromJson(needs.container-image-scan.outputs.matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        id: build
+        run: |
+          cd "${{ matrix.image-path }}"
+          IMAGE_NAME=$(echo "${{ matrix.image-path }}" | tr '/' '-')
+          docker build -t "scan-image:${IMAGE_NAME}" . 2>&1 | tee build.log
+          echo "image=scan-image:${IMAGE_NAME}" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Run Trivy vulnerability scanner on image
+        if: steps.build.outcome == 'success'
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: ${{ steps.build.outputs.image }}
+          format: 'sarif'
+          output: 'trivy-image-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Upload Trivy image results
+        if: steps.build.outcome == 'success'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-image-results.sarif'
+          category: 'container-${{ matrix.image-path }}'
+
+  shellcheck:
+    name: Shell Script Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck on entrypoint scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+          scandir: '.'
+          ignore_paths: '.git .github'
+          ignore_names: 'node_modules'
+          format: gcc
+
+  summary:
+    name: Security Audit Summary
+    runs-on: ubuntu-latest
+    needs: [dockerfile-scan, shellcheck]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "### 🐳 Container Security Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This workflow focuses on Docker and container-specific security:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dockerfile Security Scan (All) | ${{ needs.dockerfile-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Shell Script Analysis | ${{ needs.shellcheck.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "ℹ️ **Full image scans:** Run weekly or trigger manually to scan sample images." >> $GITHUB_STEP_SUMMARY
+          echo "📋 **Code analysis:** Handled by GitHub's Default Setup (CodeQL)." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the **Security** tab for detailed vulnerability reports." >> $GITHUB_STEP_SUMMARY
