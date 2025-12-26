@@ -113,6 +113,7 @@ periodically to ensure dependencies are always up-to-date.
 | go:1.22 | `ghcr.io/goover/go:1.22` | ✅ | ✅ |
 | go:1.23 | `ghcr.io/goover/go:1.23` | ✅ | ✅ |
 | go:1.24 | `ghcr.io/goover/go:1.24` | ✅ | ✅ |
+| go:1.25 | `ghcr.io/goover/go:1.25` | ✅ | ✅ |
 
 ---
 
