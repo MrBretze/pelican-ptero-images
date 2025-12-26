@@ -8,9 +8,21 @@ LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-				tcl \
+\
 			&& apt-get clean \
 			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+                build-essential \
+                curl \
+                ffmpeg \
+                git \
+                gnupg \
+                iproute2 \
+                libtool \
+                lsb-release \
+                netcat \
+                software-properties-common \
+                tcl
+
 ## install nodejs
 RUN         mkdir -p /etc/apt/keyrings \
             && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg

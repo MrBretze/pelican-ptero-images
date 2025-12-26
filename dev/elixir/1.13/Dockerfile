@@ -9,9 +9,28 @@ ARG         DEBIAN_FRONTEND=noninteractive
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-				zip \
+\
 			&& apt-get clean \
 			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+                apt-transport-https \
+                build-essential \
+                ca-certificates \
+                curl \
+                dnsutils \
+                ffmpeg \
+                git \
+                iproute2 \
+                libsqlite3-dev \
+                libtool \
+                locales \
+                sqlite3 \
+                tar \
+                tini \
+                tzdata \
+                wget \
+                zip
+
+# Set the locale
 RUN         sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
             locale-gen
 ENV         LANG=en_US.UTF-8
