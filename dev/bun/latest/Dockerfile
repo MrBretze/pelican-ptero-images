@@ -9,29 +9,9 @@ ARG         DEBIAN_FRONTEND=noninteractive
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
+				zip \
 			&& apt-get clean \
 			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-                apt-transport-https \
-                build-essential \
-                ca-certificates \
-                curl \
-                dnsutils \
-                ffmpeg \
-                git \
-                iproute2 \
-                libsqlite3-dev \
-                libtool \
-                locales \
-                python3 \
-                python3-dev \
-                sqlite3 \
-                tar \
-                tini \
-                tzdata \
-                wget \
-                zip
-
 RUN         bun upgrade
 
 # Set the locale

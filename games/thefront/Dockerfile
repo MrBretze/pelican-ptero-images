@@ -11,75 +11,9 @@ RUN         dpkg --add-architecture i386
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
+				libxtst6 \
 			&& apt-get clean \
 			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-                    ca-certificates \
-                    curl \
-                    dbus \
-                    dirmngr \
-                    g++ \
-                    gcc \
-                    gdb \
-                    git \
-                    gnupg \
-                    iproute2 \
-                    jq \
-                    mesa-utils \
-                    net-tools \
-                    netcat-openbsd \
-                    numactl \
-                    psmisc \
-                    python3 \
-                    python3-dev \
-                    python3-pip \
-                    sed \
-                    speex:i386 \
-                    tar \
-                    telnet \
-                    tini \
-                    tzdata \
-                    wget \
-                    lib32gcc-s1 \
-                    lib32stdc++6 \
-                    lib32tinfo6 \
-                    lib32z1 \
-                    libasound2 \
-                    libatk1.0-0 \
-                    libc++1 \
-                    libc6:i386 \
-                    libcurl4 \
-                    libcurl4:i386 \
-                    libcurl4-gnutls-dev:i386 \
-                    libfontconfig1 \
-                    libgcc1 \
-                    libgconf-2-4 \
-                    libgdiplus \
-                    libgtk2.0-0:i386 \
-                    libncurses5:i386 \
-                    libnss-wrapper \
-                    libnss-wrapper:i386 \
-                    libnss3 \
-                    libpangocairo-1.0-0 \
-                    libpulse-dev \
-                    libsdl1.2debian \
-                    libsdl1.2debian:i386 \
-                    libsdl2-2.0-0 \
-                    libsdl2-2.0-0:i386 \
-                    libssl3 \
-                    libssl3:i386 \
-                    libstdc++6 \
-                    libstdc++6:i386 \
-                    libtcmalloc-minimal4 \
-                    libtinfo6:i386 \
-                    libxcomposite1 \
-                    libxcursor1 \
-                    libxdamage1 \
-                    libxi6 \
-                    libxrandr2 \
-                    libxss1 \
-                    libxtst6
-
 ## install rcon
 RUN         cd /tmp/ \
             && curl -sSL https://github.com/gorcon/rcon-cli/releases/download/v0.10.3/rcon-0.10.3-amd64_linux.tar.gz > rcon.tar.gz \

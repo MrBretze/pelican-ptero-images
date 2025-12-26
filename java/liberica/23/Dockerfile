@@ -9,28 +9,9 @@ LABEL       org.opencontainers.image.licenses=AGPL-3.0-or-later
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
+				libstdc++6 \
 			&& apt-get clean \
 			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-				build-essential \
-				ca-certificates \
-				curl \
-				font-manager \
-				fontconfig \
-				git \
-				iproute2 \
-				ipset \
-				locales \
-				lsof \
-				openssl \
-				sqlite3 \
-				tar \
-				tzdata \
-				libfreetype6 \
-				libstdc++6
-
-
-# Set the locale
 RUN       	sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
            	locale-gen
 ENV      	LANG=en_US.UTF-8

@@ -8,23 +8,9 @@ ENV         DEBIAN_FRONTEND noninteractive
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
+				ipset \
 			&& apt-get clean \
 			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-				curl \
-				ca-certificates \
-				openssl \
-				git \
-				locales \
-				tar \
-				sqlite3 \
-				fontconfig \
-				tzdata \
-				iproute2 \
-				libfreetype6 \
-				font-manager \
-				ipset
-
 ## Configure locale
 RUN          update-locale lang=en_US.UTF-8 \
              && dpkg-reconfigure --frontend noninteractive locales
