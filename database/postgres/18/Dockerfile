@@ -8,12 +8,11 @@ ENV         DEBIAN_FRONTEND noninteractive
 RUN 		apt-get update \
 			&& apt-get upgrade -y \
 			&& apt-get install -y --no-install-recommends \
-\
+				netcat-openbsd \
+				iproute2 \
+				postgresql-17-postgis-3 \
 			&& apt-get clean \
 			&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-                netcat-openbsd \
-                iproute2 \
-				postgresql-17-postgis-3
 
 ## Setup user and working directory
 RUN             useradd -m -d /home/container -s /bin/bash container
