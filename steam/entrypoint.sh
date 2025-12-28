@@ -233,7 +233,7 @@ if [ -f ./DepotDownloader ]; then
     fi
 
     # Build DepotDownloader arguments safely to avoid word-splitting
-    dd_args=( -dir . -username "$STEAM_USER" -password "$STEAM_PASS" -remember-password )
+    dd_args=( -dir . -username "$STEAM_USER" -password "${STEAM_PASS:-}" -remember-password )
     if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
         dd_args+=( -os windows )
     fi
@@ -266,7 +266,7 @@ else
         msg RED "steamcmd not found or not executable at ./steamcmd/steamcmd.sh"
     else
             # Build steamcmd arguments safely
-            sc_args=( +force_install_dir /home/container +login "$STEAM_USER" "$STEAM_PASS" "$STEAM_AUTH" )
+            sc_args=( +force_install_dir /home/container +login "$STEAM_USER" "${STEAM_PASS:-}" "${STEAM_AUTH:-}" )
             if [ "${WINDOWS_INSTALL:-0}" = "1" ]; then
                 sc_args+=( +@sSteamCmdForcePlatformType windows )
             fi
