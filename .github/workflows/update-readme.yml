@@ -169,6 +169,15 @@ jobs:
             fi
           done
 
+          # Remove deleted bot images
+          for bot in $(grep -oP 'bots:\K[a-z0-9-]+(?= \|)' README.md | sort -u); do
+            if ! dir_exists "bots/$bot"; then
+              echo "  ➖ Removing bots:$bot (no longer exists)"
+              sed -i "/| bots:$bot /d" README.md
+              CHANGES_MADE="${CHANGES_MADE}Removed Bots: $bot\n"
+            fi
+          done
+
           # ============================================
           # ADD NEW IMAGES
           # ============================================
@@ -340,6 +349,21 @@ jobs:
               if [ -n "$last_game" ]; then
                 sed -i "${last_game}a\\| games:$game | \`ghcr.io/goover/games:$game\` | ✅ | ❌ | ${game^} Server |" README.md
                 CHANGES_MADE="${CHANGES_MADE}Added Games: $game\n"
+              fi
+            fi
+          done
+
+          # ============================================
+          # Check Bot images
+          # ============================================
+          echo "📦 Checking bots..."
+          for bot in $(get_subdirs "bots"); do
+            if ! check_image "bots:$bot "; then
+              echo "  ➕ Adding bots:$bot"
+              last_bot=$(grep -n "| bots:" README.md | tail -1 | cut -d: -f1)
+              if [ -n "$last_bot" ]; then
+                sed -i "${last_bot}a\\| bots:$bot | \`ghcr.io/goover/bots:$bot\` | ✅ | ❌ |" README.md
+                CHANGES_MADE="${CHANGES_MADE}Added Bots: $bot\n"
               fi
             fi
           done

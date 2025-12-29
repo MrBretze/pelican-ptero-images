@@ -277,6 +277,10 @@ main() {
     generate_database_table "redis"
 
     echo ""
+    echo "=== Bot Images ==="
+    generate_simple_table "bots" "bots"
+
+    echo ""
     echo "✅ Scan complete!"
     echo ""
     echo "To update the README manually, copy the generated tables above."
