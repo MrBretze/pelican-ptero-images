@@ -491,6 +491,7 @@ periodically to ensure dependencies are always up-to-date.
 | bots:nodemongo7 | `ghcr.io/goover/bots:nodemongo7` | ✅ | ✅ | Node.js + MongoDB 7 |
 | bots:parkertron | `ghcr.io/goover/bots:parkertron` | ✅ | ✅ | Parkertron Bot |
 | bots:sogebot | `ghcr.io/goover/bots:sogebot` | ✅ | ✅ | SogeBot |
+| bots:nodemongo8 | `ghcr.io/goover/bots:nodemongo8` | ✅ | ❌ |
 
 ---
 
