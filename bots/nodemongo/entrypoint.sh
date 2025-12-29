@@ -179,12 +179,18 @@ else
 fi
 
 line BLUE
-# MongoDB 8.2 compatible startup (removed --logRotate reopen as it's not supported)
+# MongoDB 8.x startup with latest features and optimizations
 mongod --dbpath /home/container/mongodb/ \
        --port 27017 \
        --bind_ip_all \
        --logpath /home/container/mongod.log \
-       --logappend &
+       --logappend \
+       --storageEngine wiredTiger \
+       --wiredTigerCacheSizeGB 0.5 \
+       --wiredTigerEngineConfigString="cache_size=512MB" \
+       --setParameter enableFlowControl=true \
+       --setParameter flowControlTargetLagSeconds=10 \
+       --setParameter mirrorReads="{samplingRate: 0.01}" &
 
 until nc -z -v -w5 127.0.0.1 27017; do
   echo 'Waiting for MongoDB connection...'
