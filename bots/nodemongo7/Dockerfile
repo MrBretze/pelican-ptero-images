@@ -81,8 +81,6 @@ RUN apt-get update && \
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8 \
-    NODE_ENV=production \
-    NODE_OPTIONS="--max-old-space-size=2048 --enable-source-maps" \
     NPM_CONFIG_UPDATE_NOTIFIER=false \
     NPM_CONFIG_FUND=false \
     NPM_CONFIG_AUDIT=false
