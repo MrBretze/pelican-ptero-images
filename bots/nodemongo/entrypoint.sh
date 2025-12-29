@@ -170,12 +170,11 @@ if [ -f "/home/container/mongodb/_mdb_catalog.wt" ] || [ -f "/home/container/mon
         rm -f /tmp/mongo_test.log
     fi
 else
-        # Fresh MongoDB data or already compatible
-        line GREEN
-        msg GREEN "MongoDB data directory ready..."
-        # Create marker file for future restarts
-        touch /home/container/mongodb/.mongodb8_upgraded
-    fi
+    # Fresh MongoDB data or already compatible
+    line GREEN
+    msg GREEN "MongoDB data directory ready..."
+    # Create marker file for future restarts
+    touch /home/container/mongodb/.mongodb8_upgraded
 fi
 
 line BLUE
@@ -197,6 +196,38 @@ until nc -z -v -w5 127.0.0.1 27017; do
   sleep 5
 done
 
+line GREEN
+msg GREEN "✓ MongoDB is ready"
+
+# ----------------------------
+# Set Feature Compatibility Version dynamically
+# ----------------------------
+line CYAN
+# Detect MongoDB version from the running instance
+MONGO_VERSION=$(mongod --version | grep -oP 'db version v\K[0-9]+\.[0-9]+' | head -1)
+TARGET_FCV="$MONGO_VERSION"
+
+msg YELLOW "Setting MongoDB Feature Compatibility Version to $TARGET_FCV..."
+
+# Check and set FCV using mongosh
+if command -v mongosh &> /dev/null; then
+    CURRENT_FCV=$(mongosh --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" 2>/dev/null || echo "unknown")
+
+    if [ "$CURRENT_FCV" != "$TARGET_FCV" ] && [ "$CURRENT_FCV" != "unknown" ]; then
+        msg YELLOW "Current FCV: $CURRENT_FCV - Upgrading to $TARGET_FCV..."
+        mongosh --quiet --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$TARGET_FCV\" })" 2>/dev/null && \
+            msg GREEN "✓ Feature Compatibility Version set to $TARGET_FCV" || \
+            msg YELLOW "⚠ Could not set FCV (might already be correct)"
+    else
+        msg GREEN "✓ Feature Compatibility Version already at $TARGET_FCV"
+    fi
+else
+    # Fallback to mongo shell if mongosh not available
+    msg YELLOW "Using legacy mongo shell..."
+    mongo --quiet --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$TARGET_FCV\" })" 2>/dev/null && \
+        msg GREEN "✓ Feature Compatibility Version set to $TARGET_FCV" || \
+        msg YELLOW "⚠ Could not verify/set FCV"
+fi
 
 # ----------------------------
 # Start Bot

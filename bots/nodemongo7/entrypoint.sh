@@ -163,19 +163,50 @@ if [ -f "/home/container/mongodb/_mdb_catalog.wt" ] || [ -f "/home/container/mon
 fi
 
 line BLUE
-# MongoDB 7.x compatible startup with logRotate support
+# MongoDB 7.x startup with WiredTiger optimizations
 mongod --dbpath /home/container/mongodb/ \
        --port 27017 \
        --bind_ip_all \
        --logpath /home/container/mongod.log \
        --logappend \
-       --logRotate reopen &
+       --logRotate reopen \
+       --storageEngine wiredTiger \
+       --wiredTigerCacheSizeGB 0.5 \
+       --wiredTigerEngineConfigString="cache_size=512MB" &
 
 until nc -z -v -w5 127.0.0.1 27017; do
   echo 'Waiting for MongoDB connection...'
   sleep 5
 done
 
+line GREEN
+msg GREEN "✓ MongoDB is ready"
+
+# ----------------------------
+# Set Feature Compatibility Version to 7.0
+# ----------------------------
+line CYAN
+msg YELLOW "Setting MongoDB Feature Compatibility Version to 7.0..."
+
+# Check and set FCV using mongosh or legacy mongo
+if command -v mongosh &> /dev/null; then
+    CURRENT_FCV=$(mongosh --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" 2>/dev/null || echo "unknown")
+
+    if [ "$CURRENT_FCV" != "7.0" ] && [ "$CURRENT_FCV" != "unknown" ]; then
+        msg YELLOW "Current FCV: $CURRENT_FCV - Upgrading to 7.0..."
+        mongosh --quiet --eval 'db.adminCommand({ setFeatureCompatibilityVersion: "7.0" })' 2>/dev/null && \
+            msg GREEN "✓ Feature Compatibility Version set to 7.0" || \
+            msg YELLOW "⚠ Could not set FCV (might already be correct)"
+    else
+        msg GREEN "✓ Feature Compatibility Version already at 7.0"
+    fi
+else
+    # Fallback to mongo shell if mongosh not available
+    msg YELLOW "Using legacy mongo shell..."
+    mongo --quiet --eval 'db.adminCommand({ setFeatureCompatibilityVersion: "7.0" })' 2>/dev/null && \
+        msg GREEN "✓ Feature Compatibility Version set to 7.0" || \
+        msg YELLOW "⚠ Could not verify/set FCV"
+fi
 
 # ----------------------------
 # Start Bot

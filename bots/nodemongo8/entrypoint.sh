@@ -156,12 +156,11 @@ if [ -f "/home/container/mongodb/_mdb_catalog.wt" ] || [ -f "/home/container/mon
         rm -f /tmp/mongo_test.log
     fi
 else
-        # Fresh MongoDB 8.0 data or already compatible
-        line GREEN
-        msg GREEN "MongoDB 8.0 data directory ready..."
-        # Create marker file for future restarts
-        touch /home/container/mongodb/.mongodb8_upgraded
-    fi
+    # Fresh MongoDB 8.0 data or already compatible
+    line GREEN
+    msg GREEN "MongoDB 8.0 data directory ready..."
+    # Create marker file for future restarts
+    touch /home/container/mongodb/.mongodb8_upgraded
 fi
 
 line BLUE
@@ -183,6 +182,34 @@ until nc -z -v -w5 127.0.0.1 27017; do
   sleep 5
 done
 
+line GREEN
+msg GREEN "✓ MongoDB is ready"
+
+# ----------------------------
+# Set Feature Compatibility Version to 8.0
+# ----------------------------
+line CYAN
+msg YELLOW "Setting MongoDB Feature Compatibility Version to 8.0..."
+
+# Check and set FCV using mongosh
+if command -v mongosh &> /dev/null; then
+    CURRENT_FCV=$(mongosh --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" 2>/dev/null || echo "unknown")
+
+    if [ "$CURRENT_FCV" != "8.0" ] && [ "$CURRENT_FCV" != "unknown" ]; then
+        msg YELLOW "Current FCV: $CURRENT_FCV - Upgrading to 8.0..."
+        mongosh --quiet --eval 'db.adminCommand({ setFeatureCompatibilityVersion: "8.0" })' 2>/dev/null && \
+            msg GREEN "✓ Feature Compatibility Version set to 8.0" || \
+            msg YELLOW "⚠ Could not set FCV (might already be correct)"
+    else
+        msg GREEN "✓ Feature Compatibility Version already at 8.0"
+    fi
+else
+    # Fallback to mongo shell if mongosh not available
+    msg YELLOW "Using legacy mongo shell..."
+    mongo --quiet --eval 'db.adminCommand({ setFeatureCompatibilityVersion: "8.0" })' 2>/dev/null && \
+        msg GREEN "✓ Feature Compatibility Version set to 8.0" || \
+        msg YELLOW "⚠ Could not verify/set FCV"
+fi
 
 # ----------------------------
 # Start Bot

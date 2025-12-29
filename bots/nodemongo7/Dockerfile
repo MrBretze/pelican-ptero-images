@@ -58,7 +58,9 @@ RUN apt-get update && \
     && npm install -g npm@latest --no-audit --no-fund --silent \
     && npm install -g corepack@latest --no-audit --no-fund --silent \
     && npm install -g json5 tsc typescript ts-node @types/node --no-audit --no-fund --silent \
-    && corepack enable pnpm \
+    && corepack enable pnpm yarn \
+    && corepack prepare pnpm@latest --activate \
+    && corepack prepare yarn@stable --activate \
 	# Install Bun (latest) - optimized for multi-arch
     && export BUN_INSTALL=/usr/local/bun \
     && curl -fsSL https://bun.sh/install | bash \
@@ -78,7 +80,12 @@ RUN apt-get update && \
 
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
-    LC_ALL=en_US.UTF-8
+    LC_ALL=en_US.UTF-8 \
+    NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=2048 --enable-source-maps" \
+    NPM_CONFIG_UPDATE_NOTIFIER=false \
+    NPM_CONFIG_FUND=false \
+    NPM_CONFIG_AUDIT=false
 
 # Create user
 RUN useradd -m -d /home/container -s /bin/bash container
