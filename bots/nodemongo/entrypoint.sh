@@ -275,5 +275,5 @@ msg CYAN ":/home/container$ $MODIFIED_STARTUP"
 # exec bash -c für komplexe Shell-Kommandos
 eval "$MODIFIED_STARTUP"
 
-# stop mongo
-mongod --shutdown
+# stop mongo with correct dbpath
+mongod --dbpath /home/container/mongodb/ --shutdown
