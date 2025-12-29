@@ -103,29 +103,25 @@ if [ -f "/home/container/mongodb/_mdb_catalog.wt" ] || [ -f "/home/container/mon
     msg YELLOW "Existing MongoDB data detected - checking compatibility..."
 
     # Check if we've already done a migration (marker file exists)
-    if [ -f "/home/container/mongodb/.mongodb82_migrated" ]; then
+    if [ -f "/home/container/mongodb/.mongodb8_upgraded" ]; then
         line GREEN
-        msg GREEN "MongoDB 8.2 migration already completed, skipping compatibility check..."
-    # Check if this is an older MongoDB version by looking at storage.bson or collection files
-    # MongoDB 7.x uses different internal structure than 8.x
-    elif [ -f "/home/container/mongodb/storage.bson" ]; then
-        # Try to detect version incompatibility by attempting a quick mongod check
+        msg GREEN "MongoDB 8.0 upgrade already completed, skipping compatibility check..."
+    else
+        # MongoDB 8.0 supports direct upgrade from 7.x
+        # Just ensure featureCompatibilityVersion is set correctly
         line CYAN
-        msg YELLOW "Testing MongoDB compatibility (one-time check)..."
+        msg YELLOW "Testing MongoDB 8.0 compatibility..."
 
-        # Start mongod briefly to check for version errors
+        # Start mongod briefly to check for critical errors
         mongod --dbpath /home/container/mongodb/ --port 27018 --logpath /tmp/mongo_test.log --fork 2>/dev/null || true
         sleep 2
 
-        # Check if the test log contains version compatibility errors
-        if grep -q "Wrong mongod version\|Invalid featureCompatibilityVersion\|featureCompatibilityVersion.*7\." /tmp/mongo_test.log 2>/dev/null; then
+        # Check if the test log contains CRITICAL version errors (not just warnings)
+        if grep -q "Wrong mongod version\|STORAGE_ENGINE_ERROR" /tmp/mongo_test.log 2>/dev/null; then
             line RED
-            msg RED "CRITICAL: MongoDB 8.2 cannot upgrade directly from 7.x data!"
+            msg RED "CRITICAL: MongoDB data appears corrupted or incompatible!"
             line RED
-            msg YELLOW "According to MongoDB documentation, 8.2 requires upgrade path: 7.x → 8.0 → 8.2"
-            msg YELLOW "Direct upgrade from featureCompatibilityVersion 7.x to 8.2 is not supported."
-            line YELLOW
-            msg YELLOW "AUTO-BACKUP: Moving incompatible data to backup directory..."
+            msg YELLOW "Creating backup of existing data for safety..."
 
             # Stop the test mongod
             mongod --shutdown --port 27018 2>/dev/null || pkill -f "mongod.*27018" || true
@@ -138,36 +134,38 @@ if [ -f "/home/container/mongodb/_mdb_catalog.wt" ] || [ -f "/home/container/mon
             mv /home/container/mongodb/* "$BACKUP_DIR/" 2>/dev/null || true
 
             line GREEN
-            msg GREEN "✓ Old MongoDB data safely backed up to: $BACKUP_DIR"
-            msg GREEN "✓ Starting fresh MongoDB 8.2 instance"
-            msg YELLOW "⚠ Use migration tool to restore your data from backup"
+            msg GREEN "✓ Data backed up to: $BACKUP_DIR"
+            msg GREEN "✓ Starting fresh MongoDB 8.0 instance"
+            msg YELLOW "⚠ Restore your data using mongorestore if needed"
             line GREEN
 
-            # Create marker file to prevent re-migration on next restart
-            touch /home/container/mongodb/.mongodb82_migrated
+            # Create marker file
+            touch /home/container/mongodb/.mongodb8_upgraded
         else
             # Stop the test mongod if it started successfully
             mongod --shutdown --port 27018 2>/dev/null || pkill -f "mongod.*27018" || true
             line GREEN
-            msg GREEN "MongoDB data appears compatible, continuing..."
+            msg GREEN "✓ MongoDB 8.0 can upgrade from existing data"
+            msg YELLOW "Note: MongoDB will automatically upgrade featureCompatibilityVersion on first start"
 
             # Create marker file to skip check on future restarts
-            touch /home/container/mongodb/.mongodb82_migrated
+            touch /home/container/mongodb/.mongodb8_upgraded
         fi
 
         # Clean up test log
         rm -f /tmp/mongo_test.log
-    else
-        # Fresh MongoDB 8.2 data or already compatible
+    fi
+else
+        # Fresh MongoDB 8.0 data or already compatible
         line GREEN
-        msg GREEN "MongoDB 8.2 data directory ready..."
+        msg GREEN "MongoDB 8.0 data directory ready..."
         # Create marker file for future restarts
-        touch /home/container/mongodb/.mongodb82_migrated
+        touch /home/container/mongodb/.mongodb8_upgraded
     fi
 fi
 
 line BLUE
-# MongoDB 8.2 compatible startup (removed --logRotate reopen as it's not supported)
+# MongoDB 8.0 startup
 mongod --dbpath /home/container/mongodb/ \
        --port 27017 \
        --bind_ip_all \
