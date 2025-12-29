@@ -32,6 +32,7 @@ jobs:
         tag:
           - nodemongo
           - nodemongo7
+          - nodemongo8
           - parkertron
           - sogebot
 
