@@ -205,19 +205,49 @@ msg GREEN "✓ MongoDB is ready"
 line CYAN
 # Detect MongoDB version from the running instance
 MONGO_VERSION=$(mongod --version | grep -oP 'db version v\K[0-9]+\.[0-9]+' | head -1)
+MONGO_MAJOR=$(echo "$MONGO_VERSION" | cut -d. -f1)
+MONGO_MINOR=$(echo "$MONGO_VERSION" | cut -d. -f2)
 TARGET_FCV="$MONGO_VERSION"
 
-msg YELLOW "Setting MongoDB Feature Compatibility Version to $TARGET_FCV..."
+msg YELLOW "Checking MongoDB Feature Compatibility Version (MongoDB $MONGO_VERSION)..."
 
 # Check and set FCV using mongosh
 if command -v mongosh &> /dev/null; then
     CURRENT_FCV=$(mongosh --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" 2>/dev/null || echo "unknown")
 
     if [ "$CURRENT_FCV" != "$TARGET_FCV" ] && [ "$CURRENT_FCV" != "unknown" ]; then
-        msg YELLOW "Current FCV: $CURRENT_FCV - Upgrading to $TARGET_FCV..."
-        mongosh --quiet --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$TARGET_FCV\" })" 2>/dev/null && \
-            msg GREEN "✓ Feature Compatibility Version set to $TARGET_FCV" || \
-            msg YELLOW "⚠ Could not set FCV (might already be correct)"
+        msg YELLOW "Current FCV: $CURRENT_FCV"
+
+        # Check if we need a staged upgrade (8.2+ requires 8.0 intermediate step from 7.x)
+        if [ "$MONGO_MINOR" -ge 2 ] && [[ "$CURRENT_FCV" =~ ^7\. ]]; then
+            line YELLOW
+            msg YELLOW "⚠ MongoDB 8.2+ detected with FCV 7.x - staged upgrade required"
+            msg YELLOW "Step 1: Upgrading FCV to 8.0 first..."
+
+            if mongosh --quiet --eval 'db.adminCommand({ setFeatureCompatibilityVersion: "8.0" })' 2>/dev/null; then
+                msg GREEN "✓ FCV upgraded to 8.0"
+                sleep 2
+                msg YELLOW "Step 2: Upgrading FCV to $TARGET_FCV..."
+
+                if mongosh --quiet --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$TARGET_FCV\" })" 2>/dev/null; then
+                    msg GREEN "✓ Feature Compatibility Version successfully upgraded to $TARGET_FCV"
+                else
+                    msg RED "⚠ FCV upgrade to $TARGET_FCV failed - staying at 8.0"
+                    msg YELLOW "This is safe. You can manually upgrade later if needed."
+                fi
+            else
+                msg RED "⚠ Could not upgrade FCV to 8.0 - staying at $CURRENT_FCV"
+            fi
+        else
+            # Direct upgrade possible
+            msg YELLOW "Upgrading to $TARGET_FCV..."
+            if mongosh --quiet --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$TARGET_FCV\" })" 2>/dev/null; then
+                msg GREEN "✓ Feature Compatibility Version set to $TARGET_FCV"
+            else
+                msg YELLOW "⚠ Could not set FCV - MongoDB might not support direct upgrade"
+                msg YELLOW "Current FCV ($CURRENT_FCV) will be maintained"
+            fi
+        fi
     else
         msg GREEN "✓ Feature Compatibility Version already at $TARGET_FCV"
     fi
