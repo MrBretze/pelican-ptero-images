@@ -64,6 +64,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/${{ steps.vars.outputs.owner }}/bot:${{ matrix.tag }}
-            ghcr.io/${{ steps.vars.outputs.owner }}/bot:${{ matrix.tag }}-${{ github.sha }}
+            ghcr.io/${{ steps.vars.outputs.owner }}/bots:${{ matrix.tag }}
+            ghcr.io/${{ steps.vars.outputs.owner }}/bots:${{ matrix.tag }}-${{ github.sha }}
         timeout-minutes: 45
