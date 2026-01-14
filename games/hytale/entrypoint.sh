@@ -45,40 +45,6 @@ cd /home/container || exit 1
 # Create temporary directory if it doesn't exist
 mkdir -p /home/container/.tmp
 
-# Set up machine-id: generate new one for this container instance
-setup_machine_id() {
-    msg BLUE "[setup] Initializing machine-id for this container instance..."
-
-    # Try to generate machine-id using dbus-uuidgen (preferred method)
-    if dbus-uuidgen --ensure=/etc/machine-id 2>/dev/null; then
-        CURRENT_MACHINE_ID=$(cat /etc/machine-id 2>/dev/null)
-        msg GREEN "  ✓ Generated new machine-id: $CURRENT_MACHINE_ID"
-        return 0
-    fi
-
-    # Fallback: Try to write to /var/lib/dbus/machine-id instead
-    mkdir -p /var/lib/dbus 2>/dev/null
-    if FALLBACK_UUID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null); then
-        echo "$FALLBACK_UUID" > /var/lib/dbus/machine-id 2>/dev/null
-        msg YELLOW "  Using fallback to /var/lib/dbus/machine-id: $FALLBACK_UUID"
-        return 0
-    fi
-
-    # Last resort: generate with uuidgen
-    if command -v uuidgen &>/dev/null; then
-        FALLBACK_UUID=$(uuidgen)
-        echo "$FALLBACK_UUID" > /var/lib/dbus/machine-id 2>/dev/null
-        msg YELLOW "  Using uuidgen fallback: $FALLBACK_UUID"
-        return 0
-    fi
-
-    msg RED "  ✗ Failed to generate machine-id - all methods failed"
-    return 1
-}
-
-# Setup machine-id before anything else (runs as root via tini)
-setup_machine_id
-
 # Print Java version
 echo "java -version"
 java -version
@@ -87,6 +53,7 @@ java -version
 DOWNLOADER_URL="https://downloader.hytale.com/hytale-downloader.zip"
 DOWNLOADER_BIN="${DOWNLOADER_BIN:-/home/container/hytale-downloader}"
 AUTO_UPDATE=${AUTO_UPDATE:-0}
+PATCHLINE=${PATCHLINE:-release}
 
 # Function to install Hytale Downloader
 install_downloader() {
@@ -153,7 +120,7 @@ check_for_updates() {
 
 # Function to download and update Hytale
 download_hytale() {
-    msg BLUE "[update] Preparing Hytale server files..."
+    msg BLUE "[update] Checking for Hytale updates..."
 
     if [ ! -f "$DOWNLOADER_BIN" ]; then
         if ! install_downloader; then
@@ -162,14 +129,41 @@ download_hytale() {
         fi
     fi
 
+    # Check local version
+    LOCAL_VERSION=""
+    if [ -f "/home/container/.version" ]; then
+        LOCAL_VERSION=$(cat "/home/container/.version" 2>/dev/null)
+    fi
+
+    msg CYAN "  Local version: ${LOCAL_VERSION:-none installed}"
+
+    # Get remote version without downloading
+    msg BLUE "[update 1/3] Fetching remote version..."
+    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null | head -1)
+
+    if [ -z "$REMOTE_VERSION" ]; then
+        msg RED "Error: Could not determine remote version"
+        return 1
+    fi
+
+    msg CYAN "  Remote version: $REMOTE_VERSION"
+
+    # Compare versions - if same, skip everything
+    if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ] && [ -f "/home/container/HytaleServer.jar" ]; then
+        msg GREEN "✓ Already running version $REMOTE_VERSION - no update needed"
+        return 0
+    fi
+
+    # Version is different, download and install
+    msg BLUE "[update 2/3] Downloading Hytale build..."
+
     # Create temporary directory for download
     DOWNLOAD_DIR="/home/container/.tmp/hytale-download"
     rm -rf "$DOWNLOAD_DIR"
     mkdir -p "$DOWNLOAD_DIR"
 
     # Run downloader inside download dir so it names the zip itself
-    msg BLUE "[update 1/4] Downloading latest Hytale build..."
-    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
+    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
@@ -185,7 +179,7 @@ download_hytale() {
     fi
 
     # Extract downloaded files
-    msg BLUE "[update 2/4] Extracting server files..."
+    msg BLUE "[update 3/3] Extracting and installing..."
     if ! unzip -o "$GAME_ZIP" -d "$DOWNLOAD_DIR"; then
         msg RED "Error: Failed to extract Hytale server files"
         rm -rf "$DOWNLOAD_DIR"
@@ -196,7 +190,7 @@ download_hytale() {
     if [ -d "$DOWNLOAD_DIR/Server" ]; then
         # Move all files from Server folder to /home/container
         cp -r "$DOWNLOAD_DIR/Server/"* /home/container/ || return 1
-        msg GREEN "[update 3/4] ✓ Server files installed"
+        msg GREEN "  ✓ Server files installed"
     else
         msg RED "Error: Server folder not found in downloaded files"
         rm -rf "$DOWNLOAD_DIR"
@@ -205,17 +199,18 @@ download_hytale() {
 
     if [ -f "$DOWNLOAD_DIR/Assets.zip" ]; then
         cp "$DOWNLOAD_DIR/Assets.zip" /home/container/ || return 1
-        msg GREEN "[update 4/4] ✓ Assets installed"
+        msg GREEN "  ✓ Assets installed"
     else
         msg YELLOW "Warning: Assets.zip not found in downloaded files"
     fi
 
+    # Save version
+    echo "$REMOTE_VERSION" > "/home/container/.version"
+
     # Cleanup
     rm -rf "$DOWNLOAD_DIR"
 
-    msg GREEN "✓ Hytale server ready"
-    return 0
-}
+    msg GREEN "✓ Hytale server updated to version $REMOTE_VERSION"
 
 # Check for game files and handle AUTO_UPDATE
 if [ "$AUTO_UPDATE" = "1" ]; then
