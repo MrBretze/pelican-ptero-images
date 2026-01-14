@@ -32,6 +32,7 @@ jobs:
           - aloft
           - aloft-proton
           - arma3
+          - hytale
           - interstellarrift
           - mtsa
           - quakeliveqlx
