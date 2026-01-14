@@ -49,6 +49,16 @@ mkdir -p /home/container/.tmp
 echo "java -version"
 java -version
 
+# Check for downloader updates first thing
+if [ -f "$DOWNLOADER_BIN" ]; then
+    msg BLUE "[startup] Checking for downloader updates..."
+    if "$DOWNLOADER_BIN" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
+        msg GREEN "  ✓ Downloader is up to date"
+    else
+        msg YELLOW "  Note: Downloader update check completed"
+    fi
+fi
+
 # Hytale Downloader Configuration
 DOWNLOADER_URL="https://downloader.hytale.com/hytale-downloader.zip"
 DOWNLOADER_BIN="${DOWNLOADER_BIN:-/home/container/hytale-downloader}"
@@ -93,16 +103,6 @@ install_downloader() {
     # Cleanup
     rm -rf "$TEMP_DIR"
 
-    # Check for downloader updates
-    msg BLUE "[installer] Checking for downloader updates..."
-    if "$DOWNLOADER_BIN" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
-        msg GREEN "✓ Downloader is up to date"
-    else
-        msg YELLOW "Note: Downloader update check completed"
-    fi
-
-    return 0
-}
 
 # check for updates
 check_for_updates() {
@@ -225,11 +225,7 @@ download_hytale() {
 
 # Check for game files and handle AUTO_UPDATE
 if [ "$AUTO_UPDATE" = "1" ]; then
-    msg CYAN "Auto-update enabled, checking for updates..."
-    check_for_updates
-
-    # Always download latest on AUTO_UPDATE=1
-    msg CYAN "Downloading latest Hytale server files..."
+    msg CYAN "Auto-update enabled, downloading latest version..."
     if download_hytale; then
         msg GREEN "✓ Server ready to start"
     else
