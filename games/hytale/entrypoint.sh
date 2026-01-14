@@ -4,6 +4,37 @@
 TZ=${TZ:-UTC}
 export TZ
 
+# Simple colors via tput (fallback to no color if unavailable)
+RED=$(tput setaf 1 2>/dev/null || echo '')
+GREEN=$(tput setaf 2 2>/dev/null || echo '')
+YELLOW=$(tput setaf 3 2>/dev/null || echo '')
+BLUE=$(tput setaf 4 2>/dev/null || echo '')
+CYAN=$(tput setaf 6 2>/dev/null || echo '')
+NC=$(tput sgr0 2>/dev/null || echo '')
+
+ERROR_LOG="/home/container/install_error.log"
+
+# Message helpers
+msg() {
+    local color="$1"
+    shift
+    # If RED, also write the message to install_error.log
+    if [ "$color" = "RED" ]; then
+        printf "%b\n" "${RED}$*${NC}" | tee -a "$ERROR_LOG" >&2
+    else
+        printf "%b\n" "${!color}$*${NC}"
+    fi
+}
+
+line() {
+    local color="${1:-BLUE}"
+    local term_width
+    term_width=$(tput cols 2>/dev/null || echo 70)
+    local sep
+    sep=$(printf '%*s' "$term_width" '' | tr ' ' '-')
+    msg "$color" "$sep"
+}
+
 # Set environment variable that holds the Internal Docker IP
 INTERNAL_IP=$(ip route get 1 | awk '{print $(NF-2);exit}')
 export INTERNAL_IP
@@ -15,7 +46,7 @@ cd /home/container || exit 1
 mkdir -p /home/container/.tmp
 
 # Print Java version
-printf "\033[1m\033[33mcontainer~ \033[0mjava -version\n"
+echo "java -version"
 java -version
 
 # Hytale Downloader Configuration
@@ -25,22 +56,24 @@ AUTO_UPDATE=${AUTO_UPDATE:-0}
 
 # Function to install Hytale Downloader
 install_downloader() {
-    printf "\033[1m\033[33mcontainer~ \033[0mDownloader not found, installing...\n"
+    msg BLUE "[installer] Downloader not found, installing..."
 
     local TEMP_DIR="/home/container/.tmp/hytale-downloader-install"
     rm -rf "$TEMP_DIR"
     mkdir -p "$TEMP_DIR"
 
     # Download downloader
+    msg BLUE "[installer] Downloading downloader package..."
     if ! wget -O "$TEMP_DIR/downloader.zip" "$DOWNLOADER_URL"; then
-        printf "\033[0;31mError: Failed to download Hytale Downloader\033[0m\n"
+        msg RED "Error: Failed to download Hytale Downloader"
         rm -rf "$TEMP_DIR"
         return 1
     fi
 
     # Extract downloader
+    msg BLUE "[installer] Extracting downloader..."
     if ! unzip -o "$TEMP_DIR/downloader.zip" -d "$TEMP_DIR"; then
-        printf "\033[0;31mError: Failed to extract Hytale Downloader\033[0m\n"
+        msg RED "Error: Failed to extract Hytale Downloader"
         rm -rf "$TEMP_DIR"
         return 1
     fi
@@ -49,9 +82,9 @@ install_downloader() {
     if [ -f "$TEMP_DIR/hytale-downloader" ]; then
         cp "$TEMP_DIR/hytale-downloader" "$DOWNLOADER_BIN"
         chmod +x "$DOWNLOADER_BIN"
-        printf "\033[0;32m✓ Hytale Downloader installed successfully\033[0m\n"
+        msg GREEN "✓ Hytale Downloader installed successfully"
     else
-        printf "\033[0;31mError: Downloader binary not found in archive\033[0m\n"
+        msg RED "Error: Downloader binary not found in archive"
         rm -rf "$TEMP_DIR"
         return 1
     fi
@@ -63,11 +96,11 @@ install_downloader() {
 
 # check for updates
 check_for_updates() {
-    printf "\033[1m\033[33mcontainer~ \033[0mChecking for Hytale server updates...\n"
+    msg BLUE "[update] Checking for Hytale server updates..."
 
     if [ ! -f "$DOWNLOADER_BIN" ]; then
         if ! install_downloader; then
-            printf "\033[0;31mError: Failed to install Hytale Downloader\033[0m\n"
+            msg RED "Error: Failed to install Hytale Downloader"
             return 1
         fi
     fi
@@ -76,21 +109,21 @@ check_for_updates() {
     CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" -print-version -skip-update-check 2>/dev/null | head -1)
 
     if [ -z "$CURRENT_VERSION" ]; then
-        printf "\033[0;31mWarning: Could not determine game version\033[0m\n"
+        msg YELLOW "Warning: Could not determine game version"
         return 1
     fi
 
-    printf "\033[0;36mCurrent game version: $CURRENT_VERSION\033[0m\n"
+    msg GREEN "Current game version: $CURRENT_VERSION"
     return 0
 }
 
 # Function to download and update Hytale
 download_hytale() {
-    printf "\033[1m\033[33mcontainer~ \033[0mPreparing Hytale server files...\n"
+    msg BLUE "[update] Preparing Hytale server files..."
 
     if [ ! -f "$DOWNLOADER_BIN" ]; then
         if ! install_downloader; then
-            printf "\033[0;31mError: Failed to install Hytale Downloader\033[0m\n"
+            msg RED "Error: Failed to install Hytale Downloader"
             return 1
         fi
     fi
@@ -100,28 +133,27 @@ download_hytale() {
     rm -rf "$DOWNLOAD_DIR"
     mkdir -p "$DOWNLOAD_DIR"
 
-    # Run downloader - it downloads the zip file (named like 2026.01.13-50e69c385.zip)
-    if ! "$DOWNLOADER_BIN" \
-        -skip-update-check \
-        -download-path "$DOWNLOAD_DIR/"; then
-        printf "\033[0;31mError: Hytale Downloader failed\033[0m\n"
+    # Run downloader inside download dir so it names the zip itself
+    msg BLUE "[update 1/4] Downloading latest Hytale build..."
+    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" -skip-update-check); then
+        msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
     fi
 
-    # Find the downloaded zip file (name varies by date and branch)
+    # Locate downloaded zip (dynamic name by date/branch)
     GAME_ZIP=$(find "$DOWNLOAD_DIR" -maxdepth 1 -name "*.zip" -type f | head -n 1)
 
-    if [ -z "$GAME_ZIP" ]; then
-        printf "\033[0;31mError: No zip file found in download directory\033[0m\n"
+    if [ -z "$GAME_ZIP" ] || [ ! -f "$GAME_ZIP" ]; then
+        msg RED "Error: No zip file found in download directory"
         rm -rf "$DOWNLOAD_DIR"
         return 1
     fi
 
     # Extract downloaded files
-    printf "\033[1m\033[33mcontainer~ \033[0mExtracting server files...\n"
+    msg BLUE "[update 2/4] Extracting server files..."
     if ! unzip -o "$GAME_ZIP" -d "$DOWNLOAD_DIR"; then
-        printf "\033[0;31mError: Failed to extract Hytale server files\033[0m\n"
+        msg RED "Error: Failed to extract Hytale server files"
         rm -rf "$DOWNLOAD_DIR"
         return 1
     fi
@@ -130,45 +162,45 @@ download_hytale() {
     if [ -d "$DOWNLOAD_DIR/Server" ]; then
         # Move all files from Server folder to /home/container
         cp -r "$DOWNLOAD_DIR/Server/"* /home/container/ || return 1
-        printf "\033[0;32m✓ Server files installed\033[0m\n"
+        msg GREEN "[update 3/4] ✓ Server files installed"
     else
-        printf "\033[0;31mError: Server folder not found in downloaded files\033[0m\n"
+        msg RED "Error: Server folder not found in downloaded files"
         rm -rf "$DOWNLOAD_DIR"
         return 1
     fi
 
     if [ -f "$DOWNLOAD_DIR/Assets.zip" ]; then
         cp "$DOWNLOAD_DIR/Assets.zip" /home/container/ || return 1
-        printf "\033[0;32m✓ Assets installed\033[0m\n"
+        msg GREEN "[update 4/4] ✓ Assets installed"
     else
-        printf "\033[0;31mWarning: Assets.zip not found in downloaded files\033[0m\n"
+        msg YELLOW "Warning: Assets.zip not found in downloaded files"
     fi
 
     # Cleanup
     rm -rf "$DOWNLOAD_DIR"
 
-    printf "\033[0;32m✓ Hytale server ready\033[0m\n"
+    msg GREEN "✓ Hytale server ready"
     return 0
 }
 
 # Check for game files and handle AUTO_UPDATE
 if [ "$AUTO_UPDATE" = "1" ]; then
-    printf "\033[0;36mAuto-update enabled, checking for updates...\033[0m\n"
+    msg CYAN "Auto-update enabled, checking for updates..."
     check_for_updates
 
     # Always download latest on AUTO_UPDATE=1
-    printf "\033[0;36mDownloading latest Hytale server files...\033[0m\n"
+    msg CYAN "Downloading latest Hytale server files..."
     if download_hytale; then
-        printf "\033[0;32m✓ Server ready to start\033[0m\n"
+        msg GREEN "✓ Server ready to start"
     else
-        printf "\033[0;31mError: Auto-update failed, server will not start\033[0m\n"
+        msg RED "Error: Auto-update failed, server will not start"
         exit 1
     fi
 else
     # Check for existing game files
     if [ ! -f "/home/container/HytaleServer.jar" ] && [ ! -d "/home/container/Server" ]; then
-        printf "\033[1m\033[33mcontainer~ \033[0mNo Hytale server files found\n"
-        printf "\033[0;36mSet AUTO_UPDATE=1 to automatically download files\033[0m\n"
+        msg YELLOW "No Hytale server files found"
+        msg CYAN "Set AUTO_UPDATE=1 to automatically download files"
 
         # Try to check for updates anyway
         check_for_updates || true
