@@ -45,6 +45,40 @@ cd /home/container || exit 1
 # Create temporary directory if it doesn't exist
 mkdir -p /home/container/.tmp
 
+# Set up machine-id: generate new one for this container instance
+setup_machine_id() {
+    msg BLUE "[setup] Initializing machine-id for this container instance..."
+
+    # Remove existing machine-id
+    if [ -f /etc/machine-id ]; then
+        rm -f /etc/machine-id
+        msg CYAN "  Cleared existing machine-id"
+    fi
+
+    # Generate new machine-id
+    if dbus-uuidgen --ensure=/etc/machine-id 2>/dev/null; then
+        CURRENT_MACHINE_ID=$(cat /etc/machine-id 2>/dev/null)
+        msg GREEN "  ✓ Generated new machine-id: $CURRENT_MACHINE_ID"
+    else
+        msg RED "  ✗ Failed to generate machine-id with dbus-uuidgen"
+        # Fallback: create random UUID manually
+        FALLBACK_UUID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "unknown")
+        echo "$FALLBACK_UUID" > /etc/machine-id 2>/dev/null
+        CURRENT_MACHINE_ID=$(cat /etc/machine-id 2>/dev/null)
+        msg YELLOW "  Using fallback machine-id: $CURRENT_MACHINE_ID"
+    fi
+
+    # Verify machine-id is readable
+    if [ -s /etc/machine-id ]; then
+        msg GREEN "  ✓ Machine-id setup complete"
+    else
+        msg RED "  ✗ Warning: machine-id file is empty or unreadable"
+    fi
+}
+
+# Setup machine-id before anything else (runs as root via tini)
+setup_machine_id
+
 # Print Java version
 echo "java -version"
 java -version
@@ -135,7 +169,7 @@ download_hytale() {
 
     # Run downloader inside download dir so it names the zip itself
     msg BLUE "[update 1/4] Downloading latest Hytale build..."
-    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" -skip-update-check); then
+    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1

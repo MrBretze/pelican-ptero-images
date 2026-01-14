@@ -27,9 +27,8 @@ RUN         apt update -y \
             && apt clean \
             && rm -rf /var/lib/apt/lists/*
 
-## ensure dbus has a machine id
-RUN 		rm -f /etc/machine-id && \
-    		dbus-uuidgen --ensure=/etc/machine-id
+## machine-id will be generated per container at startup
+RUN         rm -f /etc/machine-id && touch /etc/machine-id
 
 ## configure locale
 RUN         sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
