@@ -211,6 +211,8 @@ download_hytale() {
     rm -rf "$DOWNLOAD_DIR"
 
     msg GREEN "✓ Hytale server updated to version $REMOTE_VERSION"
+    return 0
+}
 
 # Check for game files and handle AUTO_UPDATE
 if [ "$AUTO_UPDATE" = "1" ]; then
