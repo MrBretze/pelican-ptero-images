@@ -92,6 +92,15 @@ install_downloader() {
 
     # Cleanup
     rm -rf "$TEMP_DIR"
+
+    # Check for downloader updates
+    msg BLUE "[installer] Checking for downloader updates..."
+    if "$DOWNLOADER_BIN" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
+        msg GREEN "✓ Downloader is up to date"
+    else
+        msg YELLOW "Note: Downloader update check completed"
+    fi
+
     return 0
 }
 
