@@ -32,14 +32,14 @@ install_downloader() {
     mkdir -p "$TEMP_DIR"
 
     # Download downloader
-    if ! wget -q -O "$TEMP_DIR/downloader.zip" "$DOWNLOADER_URL"; then
+    if ! wget -O "$TEMP_DIR/downloader.zip" "$DOWNLOADER_URL"; then
         printf "\033[0;31mError: Failed to download Hytale Downloader\033[0m\n"
         rm -rf "$TEMP_DIR"
         return 1
     fi
 
     # Extract downloader
-    if ! unzip -q -o "$TEMP_DIR/downloader.zip" -d "$TEMP_DIR"; then
+    if ! unzip -o "$TEMP_DIR/downloader.zip" -d "$TEMP_DIR"; then
         printf "\033[0;31mError: Failed to extract Hytale Downloader\033[0m\n"
         rm -rf "$TEMP_DIR"
         return 1
@@ -72,8 +72,8 @@ check_for_updates() {
         fi
     fi
 
-    # Get current game version
-    CURRENT_VERSION=$("$DOWNLOADER_BIN" -print-version -skip-update-check 2>/dev/null | head -1)
+    # Get current game version with timeout
+    CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" -print-version -skip-update-check 2>/dev/null | head -1)
 
     if [ -z "$CURRENT_VERSION" ]; then
         printf "\033[0;31mWarning: Could not determine game version\033[0m\n"
@@ -120,7 +120,7 @@ download_hytale() {
 
     # Extract downloaded files
     printf "\033[1m\033[33mcontainer~ \033[0mExtracting server files...\n"
-    if ! unzip -q -o "$GAME_ZIP" -d "$DOWNLOAD_DIR"; then
+    if ! unzip -o "$GAME_ZIP" -d "$DOWNLOAD_DIR"; then
         printf "\033[0;31mError: Failed to extract Hytale server files\033[0m\n"
         rm -rf "$DOWNLOAD_DIR"
         return 1
