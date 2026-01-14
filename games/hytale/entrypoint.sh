@@ -49,31 +49,31 @@ mkdir -p /home/container/.tmp
 setup_machine_id() {
     msg BLUE "[setup] Initializing machine-id for this container instance..."
 
-    # Remove existing machine-id
-    if [ -f /etc/machine-id ]; then
-        rm -f /etc/machine-id
-        msg CYAN "  Cleared existing machine-id"
-    fi
-
-    # Generate new machine-id
+    # Try to generate machine-id using dbus-uuidgen (preferred method)
     if dbus-uuidgen --ensure=/etc/machine-id 2>/dev/null; then
         CURRENT_MACHINE_ID=$(cat /etc/machine-id 2>/dev/null)
         msg GREEN "  ✓ Generated new machine-id: $CURRENT_MACHINE_ID"
-    else
-        msg RED "  ✗ Failed to generate machine-id with dbus-uuidgen"
-        # Fallback: create random UUID manually
-        FALLBACK_UUID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "unknown")
-        echo "$FALLBACK_UUID" > /etc/machine-id 2>/dev/null
-        CURRENT_MACHINE_ID=$(cat /etc/machine-id 2>/dev/null)
-        msg YELLOW "  Using fallback machine-id: $CURRENT_MACHINE_ID"
+        return 0
     fi
 
-    # Verify machine-id is readable
-    if [ -s /etc/machine-id ]; then
-        msg GREEN "  ✓ Machine-id setup complete"
-    else
-        msg RED "  ✗ Warning: machine-id file is empty or unreadable"
+    # Fallback: Try to write to /var/lib/dbus/machine-id instead
+    mkdir -p /var/lib/dbus 2>/dev/null
+    if FALLBACK_UUID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null); then
+        echo "$FALLBACK_UUID" > /var/lib/dbus/machine-id 2>/dev/null
+        msg YELLOW "  Using fallback to /var/lib/dbus/machine-id: $FALLBACK_UUID"
+        return 0
     fi
+
+    # Last resort: generate with uuidgen
+    if command -v uuidgen &>/dev/null; then
+        FALLBACK_UUID=$(uuidgen)
+        echo "$FALLBACK_UUID" > /var/lib/dbus/machine-id 2>/dev/null
+        msg YELLOW "  Using uuidgen fallback: $FALLBACK_UUID"
+        return 0
+    fi
+
+    msg RED "  ✗ Failed to generate machine-id - all methods failed"
+    return 1
 }
 
 # Setup machine-id before anything else (runs as root via tini)
