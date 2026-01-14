@@ -23,6 +23,7 @@ RUN         apt update -y \
                 zip \
                 unzip \
                 jq \
+                dbus \
             && apt clean \
             && rm -rf /var/lib/apt/lists/*
 
