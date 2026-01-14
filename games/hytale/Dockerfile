@@ -8,6 +8,7 @@ LABEL       org.opencontainers.image.licenses=MIT
 RUN         apt update -y \
             && apt install -y \
                 curl \
+                wget \
                 lsof \
                 ca-certificates \
                 openssl \
@@ -21,7 +22,16 @@ RUN         apt update -y \
                 tini \
                 zip \
                 unzip \
-                jq
+                jq \
+            && apt clean \
+            && rm -rf /var/lib/apt/lists/*
+
+## configure locale
+RUN         sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+            locale-gen
+ENV         LANG en_US.UTF-8
+ENV         LANGUAGE en_US:en
+ENV         LC_ALL en_US.UTF-8
 
 ## Setup user and working directory
 RUN         useradd -m -d /home/container -s /bin/bash container
@@ -31,7 +41,7 @@ WORKDIR     /home/container
 
 STOPSIGNAL SIGINT
 
-COPY        --chown=container:container ./../entrypoint.sh /entrypoint.sh
+COPY        --chown=container:container ./entrypoint.sh /entrypoint.sh
 RUN         chmod +x /entrypoint.sh
 ENTRYPOINT    ["/usr/bin/tini", "-g", "--"]
 CMD         ["/entrypoint.sh"]
