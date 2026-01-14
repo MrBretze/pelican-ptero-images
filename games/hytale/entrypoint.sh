@@ -102,7 +102,8 @@ install_downloader() {
 
     # Cleanup
     rm -rf "$TEMP_DIR"
-
+    return 0
+}
 
 # check for updates
 check_for_updates() {
