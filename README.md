@@ -476,6 +476,7 @@ periodically to ensure dependencies are always up-to-date.
 | games:staxel | `ghcr.io/goover/games:staxel` | ✅ | ❌ | Staxel Server |
 | games:thefront | `ghcr.io/goover/games:thefront` | ✅ | ❌ | The Front Server |
 | games:wurm | `ghcr.io/goover/games:wurm` | ✅ | ❌ | Wurm Unlimited |
+| games:hytale | `ghcr.io/goover/games:hytale` | ✅ | ❌ | Hytale Server |
 
 ---
 
