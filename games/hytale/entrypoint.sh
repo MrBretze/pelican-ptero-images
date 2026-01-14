@@ -86,7 +86,7 @@ check_for_updates() {
 
 # Function to download and update Hytale
 download_hytale() {
-    printf "\033[1m\033[33mcontainer~ \033[0mDownloading Hytale server files...\n"
+    printf "\033[1m\033[33mcontainer~ \033[0mPreparing Hytale server files...\n"
 
     if [ ! -f "$DOWNLOADER_BIN" ]; then
         if ! install_downloader; then
@@ -100,16 +100,16 @@ download_hytale() {
     rm -rf "$DOWNLOAD_DIR"
     mkdir -p "$DOWNLOAD_DIR"
 
-    # Download Hytale server (downloader creates zip with dynamic name like 2026.01.13-50e69c385.zip)
+    # Run downloader - it downloads the zip file (named like 2026.01.13-50e69c385.zip)
     if ! "$DOWNLOADER_BIN" \
         -skip-update-check \
         -download-path "$DOWNLOAD_DIR/"; then
-        printf "\033[0;31mError: Failed to download Hytale server files\033[0m\n"
+        printf "\033[0;31mError: Hytale Downloader failed\033[0m\n"
         rm -rf "$DOWNLOAD_DIR"
         return 1
     fi
 
-    # Find the downloaded zip file (name varies)
+    # Find the downloaded zip file (name varies by date and branch)
     GAME_ZIP=$(find "$DOWNLOAD_DIR" -maxdepth 1 -name "*.zip" -type f | head -n 1)
 
     if [ -z "$GAME_ZIP" ]; then
@@ -147,7 +147,7 @@ download_hytale() {
     # Cleanup
     rm -rf "$DOWNLOAD_DIR"
 
-    printf "\033[0;32m✓ Hytale server update completed successfully\033[0m\n"
+    printf "\033[0;32m✓ Hytale server ready\033[0m\n"
     return 0
 }
 
