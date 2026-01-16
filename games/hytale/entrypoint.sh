@@ -1,5 +1,4 @@
 #!/bin/bash
-set -o pipefail
 
 # Default the TZ environment variable to UTC.
 TZ=${TZ:-UTC}
@@ -60,45 +59,12 @@ DOWNLOADER_ARGS=()
 if [ -n "$CREDENTIALS_PATH" ]; then
     DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
 fi
-AUTO_DEVICE_AUTH=${AUTO_DEVICE_AUTH:-0}
-AUTH_DELAY=${AUTH_DELAY:-5}
-
-# Run downloader, surface device auth prompts, and forward output
-run_downloader_capture() {
-    local args=("${DOWNLOADER_ARGS[@]}" "$@")
-    local tmp
-    tmp=$(mktemp)
-
-    if ! "$DOWNLOADER_BIN" "${args[@]}" | tee "$tmp"; then
-        local rc=$?
-        cat "$tmp" >&2
-        rm -f "$tmp"
-        return "$rc"
-    fi
-
-    # Detect device auth flow for the downloader itself
-    if grep -q "oauth.accounts.hytale.com/oauth2/device/verify" "$tmp"; then
-        local code
-        code=$(grep -Eo 'user_code=[A-Za-z0-9]+' "$tmp" | head -1 | cut -d= -f2)
-        if [ -z "$code" ]; then
-            code=$(grep -Eo 'Authorization code: [A-Za-z0-9]+' "$tmp" | awk '{print $3}' | head -1)
-        fi
-        msg RED "[auth-download] Downloader authorization required"
-        msg GREEN "[auth-download] Code: ${code:-<unbekannt>}"
-        msg CYAN "[auth-download] Visit https://oauth.accounts.hytale.com/oauth2/device/verify and enter the code"
-        rm -f "$tmp"
-        return 99
-    fi
-
-    cat "$tmp"
-    rm -f "$tmp"
-    return 0
-}
+DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-20}
 
 # Check for downloader updates first thing
 if [ -f "$DOWNLOADER_BIN" ]; then
     msg BLUE "[startup] Checking for downloader updates..."
-    if run_downloader_capture -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
+    if "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
         msg GREEN "  ✓ Downloader is up to date"
     else
         msg YELLOW "  Note: Downloader update check completed"
@@ -156,13 +122,10 @@ check_for_updates() {
         fi
     fi
 
-    # Get current game version with timeout
+    # Get current game version
     local VERSION_OUTPUT RC
-    VERSION_OUTPUT=$(run_downloader_capture -print-version -skip-update-check 2>/dev/null)
+    VERSION_OUTPUT=$("$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null)
     RC=$?
-    if [ "$RC" = "99" ]; then
-        return 1
-    fi
     if [ "$RC" != "0" ]; then
         msg YELLOW "Warning: Could not determine game version"
         return 1
@@ -201,11 +164,8 @@ download_hytale() {
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
     local REMOTE_OUT REMOTE_RC
-    REMOTE_OUT=$(run_downloader_capture -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null)
+    REMOTE_OUT=$("$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null)
     REMOTE_RC=$?
-    if [ "$REMOTE_RC" = "99" ]; then
-        return 1
-    fi
     if [ "$REMOTE_RC" != "0" ]; then
         msg RED "Error: Could not determine remote version"
         return 1
@@ -235,12 +195,7 @@ download_hytale() {
     mkdir -p "$DOWNLOAD_DIR"
 
     # Run downloader inside download dir so it names the zip itself
-    if ! (cd "$DOWNLOAD_DIR" && run_downloader_capture -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
-        local DL_RC=$?
-        if [ "$DL_RC" = "99" ]; then
-            rm -rf "$DOWNLOAD_DIR"
-            return 1
-        fi
+    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
@@ -319,54 +274,8 @@ fi
 # replacing the values.
 PARSED=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g' | eval echo "$(cat -)")
 
-if [ "$AUTO_DEVICE_AUTH" = "1" ]; then
-    msg CYAN "[auth] Auto device auth enabled"
-
-    # Start the server as a coprocess to inject the auth command and still mirror all logs
-    coproc SERVER_PROC { eval "exec env ${PARSED}"; }
-    SERVER_PID=${SERVER_PROC_PID}
-
-    # Forward user input to the server so interactive commands still work
-    {
-        while IFS= read -r user_input; do
-            echo "$user_input" >&${SERVER_PROC[1]} || break
-        done
-    } &
-    STDIN_FWD_PID=$!
-
-    AUTH_PATTERN='[A-Z0-9]\{4\}-[A-Z0-9]\{4\}'
-
-    # Stream server output, mirror to console, and surface the device code when it appears
-    {
-        while IFS= read -r line <&${SERVER_PROC[0]}; do
-            printf "%s\n" "$line"
-            if echo "$line" | grep -oE "$AUTH_PATTERN" >/dev/null 2>&1; then
-                CODE=$(echo "$line" | grep -oE "$AUTH_PATTERN" | head -1)
-                msg GREEN "[auth] Device code detected: $CODE"
-                msg CYAN "[auth] Open https://accounts.hytale.com/device and enter the code"
-            fi
-        done
-    } &
-    OUT_FWD_PID=$!
-
-    # Trigger device auth shortly after startup
-    (
-        sleep "$AUTH_DELAY"
-        echo "/auth login device" >&${SERVER_PROC[1]} 2>/dev/null || true
-    ) &
-
-    # Wait for the server to exit
-    wait "$SERVER_PID"
-    EXIT_CODE=$?
-
-    # Cleanup background helpers
-    kill "$STDIN_FWD_PID" "$OUT_FWD_PID" 2>/dev/null || true
-
-    exit "$EXIT_CODE"
-else
-    # Display the command we're running in the output, and then execute it with eval
-    printf "\033[1m\033[33mcontainer~ \033[0m"
-    echo "$PARSED"
-    # shellcheck disable=SC2086
-    exec env ${PARSED}
-fi
+# Display the command we're running in the output, and then execute it with eval
+printf "\033[1m\033[33mcontainer~ \033[0m"
+echo "$PARSED"
+# shellcheck disable=SC2086
+exec env ${PARSED}
