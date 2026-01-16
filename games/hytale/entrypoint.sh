@@ -66,6 +66,12 @@ PATCHLINE=${PATCHLINE:-release}
 CREDENTIALS_PATH="${CREDENTIALS_PATH:-/home/container/.hytale-downloader-credentials.json}"
 DOWNLOADER_ARGS=()
 
+# Plugin Configuration
+PSAVER=${PSAVER:-0}
+PSAVER_RELEASES_URL="https://api.github.com/repos/nitrado/hytale-plugin-performance-saver/releases/latest"
+PSAVER_PLUGINS_DIR="/home/container/mods"
+PSAVER_JAR_PATTERN="Nitrado_PerformanceSaver*.jar"
+
 # Auth is handled manually via URL; credentials file is optional but used when present
 if [ -n "$CREDENTIALS_PATH" ] && [ -f "$CREDENTIALS_PATH" ]; then
     DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
@@ -302,6 +308,77 @@ else
         # Check for updates in background when server exists
         check_for_updates || true
     fi
+fi
+
+# Function to manage Performance Saver plugin
+manage_psaver() {
+    # Create mods directory if it doesn't exist
+    mkdir -p "$PSAVER_PLUGINS_DIR"
+
+    if [ "$PSAVER" = "1" ]; then
+        # PSAVER=1: Install and enable the plugin
+        msg BLUE "[plugin] Checking Performance Saver plugin..."
+
+        # Check if a jar matching the pattern exists (enabled)
+        EXISTING_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -name "$PSAVER_JAR_PATTERN" ! -name "*.disabled" -type f 2>/dev/null | head -n 1)
+
+        if [ -n "$EXISTING_JAR" ]; then
+            msg GREEN "  ✓ Performance Saver already installed and enabled"
+            return 0
+        fi
+
+        # Check if a disabled version exists
+        DISABLED_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -name "${PSAVER_JAR_PATTERN}.disabled" -type f 2>/dev/null | head -n 1)
+
+        if [ -n "$DISABLED_JAR" ]; then
+            msg BLUE "  Re-enabling Performance Saver..."
+            mv "$DISABLED_JAR" "${DISABLED_JAR%.disabled}"
+            msg GREEN "  ✓ Performance Saver re-enabled"
+            return 0
+        fi
+
+        # Download and install the plugin
+        msg BLUE "  Downloading Performance Saver plugin..."
+        TEMP_PSAVER_DIR="/home/container/.tmp/psaver-install"
+        rm -rf "$TEMP_PSAVER_DIR"
+        mkdir -p "$TEMP_PSAVER_DIR"
+
+        # Get latest release download URL
+        DOWNLOAD_URL=$(wget -q -O - "$PSAVER_RELEASES_URL" 2>/dev/null | grep -oP '"browser_download_url":\s*"\K[^"]*\.jar' | head -n 1)
+
+        if [ -z "$DOWNLOAD_URL" ]; then
+            msg RED "Error: Could not fetch Performance Saver plugin release"
+            rm -rf "$TEMP_PSAVER_DIR"
+            return 1
+        fi
+
+        if ! wget -O "$TEMP_PSAVER_DIR/plugin.jar" "$DOWNLOAD_URL" 2>/dev/null; then
+            msg RED "Error: Failed to download Performance Saver plugin"
+            rm -rf "$TEMP_PSAVER_DIR"
+            return 1
+        fi
+
+        # Copy to mods directory
+        cp "$TEMP_PSAVER_DIR/plugin.jar" "$PSAVER_PLUGINS_DIR/"
+        rm -rf "$TEMP_PSAVER_DIR"
+        msg GREEN "  ✓ Performance Saver plugin installed"
+        return 0
+
+    else
+        # PSAVER=0: Disable the plugin if it exists
+        EXISTING_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -name "$PSAVER_JAR_PATTERN" ! -name "*.disabled" -type f 2>/dev/null | head -n 1)
+
+        if [ -n "$EXISTING_JAR" ]; then
+            msg BLUE "[plugin] Disabling Performance Saver..."
+            mv "$EXISTING_JAR" "${EXISTING_JAR}.disabled"
+            msg GREEN "  ✓ Performance Saver disabled"
+        fi
+    fi
+}
+
+# Manage Performance Saver plugin
+if [ "$PSAVER" = "1" ] || [ -f "$PSAVER_PLUGINS_DIR"/* ]; then
+    manage_psaver || true
 fi
 
 # Convert all of the "{{VARIABLE}}" parts of the command into the expected shell
