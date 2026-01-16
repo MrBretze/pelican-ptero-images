@@ -42,7 +42,8 @@ export INTERNAL_IP
 # Switch to the container's working directory
 cd /home/container || exit 1
 
-# Create temporary directory if it doesn't exist
+# Refresh temporary directory to avoid stale downloads between restarts
+rm -rf /home/container/.tmp
 mkdir -p /home/container/.tmp
 
 # Print Java version
@@ -56,15 +57,21 @@ AUTO_UPDATE=${AUTO_UPDATE:-0}
 PATCHLINE=${PATCHLINE:-release}
 CREDENTIALS_PATH="${CREDENTIALS_PATH:-/home/container/.hytale-downloader-credentials.json}"
 DOWNLOADER_ARGS=()
-if [ -n "$CREDENTIALS_PATH" ]; then
+
+# Auth is handled manually via URL; credentials file is optional but used when present
+if [ -n "$CREDENTIALS_PATH" ] && [ -f "$CREDENTIALS_PATH" ]; then
     DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
 fi
 DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-20}
+TIMEOUT_BIN="$(command -v timeout || true)"
 
 # Check for downloader updates first thing
 if [ -f "$DOWNLOADER_BIN" ]; then
     msg BLUE "[startup] Checking for downloader updates..."
-    if "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
+    UPDATE_OUT=$(run_downloader "Downloader update check" -check-update)
+    UPDATE_RC=$?
+    echo "$UPDATE_OUT" | sed "s/.*/  ${CYAN}&${NC}/"
+    if [ "$UPDATE_RC" = "0" ]; then
         msg GREEN "  ✓ Downloader is up to date"
     else
         msg YELLOW "  Note: Downloader update check completed"
@@ -111,6 +118,27 @@ install_downloader() {
     return 0
 }
 
+run_downloader() {
+    # Runs the downloader with an optional timeout and returns stdout for further processing
+    local description="$1"
+    shift
+
+    local output rc
+    if [ -n "$TIMEOUT_BIN" ]; then
+        output=$("$TIMEOUT_BIN" "$DOWNLOADER_TIMEOUT" "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" "$@" 2>&1)
+        rc=$?
+        if [ "$rc" = "124" ]; then
+            msg RED "Error: $description timed out after ${DOWNLOADER_TIMEOUT}s"
+        fi
+    else
+        output=$("$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" "$@" 2>&1)
+        rc=$?
+    fi
+
+    echo "$output"
+    return "$rc"
+}
+
 # Check for updates
 check_for_updates() {
     msg BLUE "[update] Checking for Hytale server updates..."
@@ -124,7 +152,7 @@ check_for_updates() {
 
     # Get current game version
     local VERSION_OUTPUT RC
-    VERSION_OUTPUT=$("$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null)
+    VERSION_OUTPUT=$(run_downloader "Version check" -print-version -skip-update-check)
     RC=$?
     if [ "$RC" != "0" ]; then
         msg YELLOW "Warning: Could not determine game version"
@@ -164,7 +192,7 @@ download_hytale() {
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
     local REMOTE_OUT REMOTE_RC
-    REMOTE_OUT=$("$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null)
+    REMOTE_OUT=$(run_downloader "Remote version lookup" -patchline "$PATCHLINE" -print-version -skip-update-check)
     REMOTE_RC=$?
     if [ "$REMOTE_RC" != "0" ]; then
         msg RED "Error: Could not determine remote version"
@@ -195,7 +223,11 @@ download_hytale() {
     mkdir -p "$DOWNLOAD_DIR"
 
     # Run downloader inside download dir so it names the zip itself
-    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
+    local DOWNLOAD_LOG DOWNLOAD_RC
+    DOWNLOAD_LOG=$(cd "$DOWNLOAD_DIR" && run_downloader "Download build" -patchline "$PATCHLINE" -skip-update-check)
+    DOWNLOAD_RC=$?
+    echo "$DOWNLOAD_LOG" | sed "s/.*/  ${CYAN}&${NC}/"
+    if [ "$DOWNLOAD_RC" != "0" ]; then
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
