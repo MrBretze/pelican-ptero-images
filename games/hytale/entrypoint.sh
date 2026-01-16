@@ -54,11 +54,16 @@ DOWNLOADER_URL="https://downloader.hytale.com/hytale-downloader.zip"
 DOWNLOADER_BIN="${DOWNLOADER_BIN:-/home/container/hytale-downloader}"
 AUTO_UPDATE=${AUTO_UPDATE:-0}
 PATCHLINE=${PATCHLINE:-release}
+CREDENTIALS_PATH="${CREDENTIALS_PATH:-/home/container/.hytale-downloader-credentials.json}"
+DOWNLOADER_ARGS=()
+if [ -n "$CREDENTIALS_PATH" ]; then
+    DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
+fi
 
 # Check for downloader updates first thing
 if [ -f "$DOWNLOADER_BIN" ]; then
     msg BLUE "[startup] Checking for downloader updates..."
-    if "$DOWNLOADER_BIN" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
+    if "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
         msg GREEN "  ✓ Downloader is up to date"
     else
         msg YELLOW "  Note: Downloader update check completed"
@@ -117,7 +122,7 @@ check_for_updates() {
     fi
 
     # Get current game version with timeout
-    CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" -print-version -skip-update-check 2>/dev/null | head -1)
+    CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null | head -1)
 
     if [ -z "$CURRENT_VERSION" ]; then
         msg YELLOW "Warning: Could not determine game version"
@@ -149,7 +154,7 @@ download_hytale() {
 
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
-    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null | head -1)
+    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null | head -1)
 
     if [ -z "$REMOTE_VERSION" ]; then
         msg RED "Error: Could not determine remote version"
@@ -173,7 +178,7 @@ download_hytale() {
     mkdir -p "$DOWNLOAD_DIR"
 
     # Run downloader inside download dir so it names the zip itself
-    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
+    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
