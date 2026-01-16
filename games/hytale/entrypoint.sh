@@ -62,15 +62,23 @@ DOWNLOADER_ARGS=()
 if [ -n "$CREDENTIALS_PATH" ] && [ -f "$CREDENTIALS_PATH" ]; then
     DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
 fi
-DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-10}
+DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-300}
 TIMEOUT_BIN="$(command -v timeout || true)"
 
 run_with_timeout() {
-    if [ -n "$TIMEOUT_BIN" ]; then
+    if [ "$DOWNLOADER_TIMEOUT" -gt 0 ] && [ -n "$TIMEOUT_BIN" ]; then
         "$TIMEOUT_BIN" "$DOWNLOADER_TIMEOUT" "$@"
     else
         "$@"
     fi
+}
+
+run_no_timeout() {
+    "$@"
+}
+
+contains_auth_prompt() {
+    echo "$1" | grep -q "Please visit the following URL to authenticate"
 }
 
 # Check for downloader updates first thing
@@ -175,7 +183,15 @@ download_hytale() {
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
     local REMOTE_OUT
-    REMOTE_OUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null)
+    REMOTE_OUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>&1)
+    if contains_auth_prompt "$REMOTE_OUT"; then
+        echo "$REMOTE_OUT" | sed "s/.*/  ${CYAN}&${NC}/"
+        msg YELLOW "Waiting for OAuth device login..."
+        run_no_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"
+        # After auth, try once more to capture the version quickly
+        REMOTE_OUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null)
+    fi
+
     if [ -z "$REMOTE_OUT" ]; then
         msg RED "Error: Could not determine remote version"
         return 1
@@ -205,14 +221,23 @@ download_hytale() {
     mkdir -p "$DOWNLOAD_DIR"
 
     # Run downloader inside download dir so it names the zip itself
-    if ! (cd "$DOWNLOAD_DIR" && run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
+    local DOWNLOAD_LOG
+    DOWNLOAD_LOG=$(cd "$DOWNLOAD_DIR" && run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1)
+    echo "$DOWNLOAD_LOG" | sed "s/.*/  ${CYAN}&${NC}/"
+    if contains_auth_prompt "$DOWNLOAD_LOG"; then
+        msg YELLOW "Waiting for OAuth device login to complete..."
+        DOWNLOAD_LOG=$(cd "$DOWNLOAD_DIR" && run_no_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1)
+        echo "$DOWNLOAD_LOG" | sed "s/.*/  ${CYAN}&${NC}/"
+    fi
+
+    if [ -z "$DOWNLOAD_LOG" ]; then
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
     fi
 
     # Locate downloaded zip (dynamic name by date/branch)
-    GAME_ZIP=$(find "$DOWNLOAD_DIR" -maxdepth 1 -name "*.zip" -type f | head -n 1)
+    GAME_ZIP=$(find "$DOWNLOAD_DIR" -maxdepth 3 -name "*.zip" -type f | head -n 1)
 
     if [ -z "$GAME_ZIP" ] || [ ! -f "$GAME_ZIP" ]; then
         msg RED "Error: No zip file found in download directory"
