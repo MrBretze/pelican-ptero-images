@@ -124,8 +124,24 @@ check_for_updates() {
         fi
     fi
 
+    # If credentials file does not exist yet, trigger an initial run without args
+    # so the downloader can guide through device auth and create the file.
+    if [ ! -f "$CREDENTIALS_PATH" ]; then
+        msg BLUE "[auth] Initializing downloader to create credentials (one-time)..."
+        "$DOWNLOADER_BIN" -print-version -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"
+        if [ -f "$CREDENTIALS_PATH" ]; then
+            msg GREEN "  ✓ Credentials file created"
+            # Rebuild downloader args now that the file exists
+            DOWNLOADER_ARGS=("-credentials-path" "$CREDENTIALS_PATH")
+        else
+            msg YELLOW "  Note: Credentials file not created yet; continuing without it"
+        fi
+    fi
+
     # Get current game version
-    CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null | head -1)
+    CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null \
+        | grep -v -E "Please visit|Path to credentials file" \
+        | head -1)
 
     if [ -z "$CURRENT_VERSION" ]; then
         msg YELLOW "Warning: Could not determine game version"
@@ -147,6 +163,20 @@ download_hytale() {
         fi
     fi
 
+    # If credentials file does not exist yet, trigger an initial run without args
+    # so the downloader can guide through device auth and create the file.
+    if [ ! -f "$CREDENTIALS_PATH" ]; then
+        msg BLUE "[auth] Initializing downloader to create credentials (one-time)..."
+        "$DOWNLOADER_BIN" -print-version -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"
+        if [ -f "$CREDENTIALS_PATH" ]; then
+            msg GREEN "  ✓ Credentials file created"
+            # Rebuild downloader args now that the file exists
+            DOWNLOADER_ARGS=("-credentials-path" "$CREDENTIALS_PATH")
+        else
+            msg YELLOW "  Note: Credentials file not created yet; continuing without it"
+        fi
+    fi
+
     # Check local version
     LOCAL_VERSION=""
     if [ -f "/home/container/.version" ]; then
@@ -157,7 +187,9 @@ download_hytale() {
 
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
-    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null | grep -v "Please visit" | head -1)
+    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null \
+        | grep -v -E "Please visit|Path to credentials file" \
+        | head -1)
 
     if [ -z "$REMOTE_VERSION" ]; then
         msg RED "Error: Could not determine remote version"
