@@ -62,47 +62,21 @@ DOWNLOADER_ARGS=()
 if [ -n "$CREDENTIALS_PATH" ] && [ -f "$CREDENTIALS_PATH" ]; then
     DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
 fi
-DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-20}
+DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-10}
 TIMEOUT_BIN="$(command -v timeout || true)"
 
-check_downloader_reachable() {
-    # Quick availability probe to fail fast if CDN/host not reachable
-    if ! wget --spider -q -T "$DOWNLOADER_TIMEOUT" -t 2 "$DOWNLOADER_URL"; then
-        msg RED "Error: Downloader URL not reachable ($DOWNLOADER_URL)"
-        msg RED "Check network/connectivity or try again later."
-        return 1
-    fi
-    return 0
-}
-
-# Runs the downloader with an optional timeout and returns stdout for further processing
-run_downloader() {
-    local description="$1"
-    shift
-
-    local output rc
+run_with_timeout() {
     if [ -n "$TIMEOUT_BIN" ]; then
-        output=$("$TIMEOUT_BIN" "$DOWNLOADER_TIMEOUT" "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" "$@" 2>&1)
-        rc=$?
-        if [ "$rc" = "124" ]; then
-            msg RED "Error: $description timed out after ${DOWNLOADER_TIMEOUT}s"
-        fi
+        "$TIMEOUT_BIN" "$DOWNLOADER_TIMEOUT" "$@"
     else
-        output=$("$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" "$@" 2>&1)
-        rc=$?
+        "$@"
     fi
-
-    echo "$output"
-    return "$rc"
 }
 
 # Check for downloader updates first thing
 if [ -f "$DOWNLOADER_BIN" ]; then
     msg BLUE "[startup] Checking for downloader updates..."
-    UPDATE_OUT=$(run_downloader "Downloader update check" -check-update)
-    UPDATE_RC=$?
-    echo "$UPDATE_OUT" | sed "s/.*/  ${CYAN}&${NC}/"
-    if [ "$UPDATE_RC" = "0" ]; then
+    if run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
         msg GREEN "  ✓ Downloader is up to date"
     else
         msg YELLOW "  Note: Downloader update check completed"
@@ -160,15 +134,10 @@ check_for_updates() {
         fi
     fi
 
-    if ! check_downloader_reachable; then
-        return 1
-    fi
-
     # Get current game version
-    local VERSION_OUTPUT RC
-    VERSION_OUTPUT=$(run_downloader "Version check" -print-version -skip-update-check)
-    RC=$?
-    if [ "$RC" != "0" ]; then
+    local VERSION_OUTPUT
+    VERSION_OUTPUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null)
+    if [ -z "$VERSION_OUTPUT" ]; then
         msg YELLOW "Warning: Could not determine game version"
         return 1
     fi
@@ -195,10 +164,6 @@ download_hytale() {
         fi
     fi
 
-    if ! check_downloader_reachable; then
-        return 1
-    fi
-
     # Check local version
     LOCAL_VERSION=""
     if [ -f "/home/container/.version" ]; then
@@ -209,10 +174,9 @@ download_hytale() {
 
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
-    local REMOTE_OUT REMOTE_RC
-    REMOTE_OUT=$(run_downloader "Remote version lookup" -patchline "$PATCHLINE" -print-version -skip-update-check)
-    REMOTE_RC=$?
-    if [ "$REMOTE_RC" != "0" ]; then
+    local REMOTE_OUT
+    REMOTE_OUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null)
+    if [ -z "$REMOTE_OUT" ]; then
         msg RED "Error: Could not determine remote version"
         return 1
     fi
@@ -241,11 +205,7 @@ download_hytale() {
     mkdir -p "$DOWNLOAD_DIR"
 
     # Run downloader inside download dir so it names the zip itself
-    local DOWNLOAD_LOG DOWNLOAD_RC
-    DOWNLOAD_LOG=$(cd "$DOWNLOAD_DIR" && run_downloader "Download build" -patchline "$PATCHLINE" -skip-update-check)
-    DOWNLOAD_RC=$?
-    echo "$DOWNLOAD_LOG" | sed "s/.*/  ${CYAN}&${NC}/"
-    if [ "$DOWNLOAD_RC" != "0" ]; then
+    if ! (cd "$DOWNLOAD_DIR" && run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
