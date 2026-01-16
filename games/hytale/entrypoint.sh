@@ -76,6 +76,9 @@ if [ -f "$DOWNLOADER_BIN" ]; then
     msg BLUE "[startup] Checking for downloader updates..."
     if "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
         msg GREEN "  ✓ Downloader is up to date"
+        if [ -f "$CREDENTIALS_PATH" ]; then
+            msg GREEN "  ✓ Valid downloader auth file found"
+        fi
     else
         msg YELLOW "  Note: Downloader update check completed"
     fi
