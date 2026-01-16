@@ -50,6 +50,14 @@ mkdir -p /home/container/.tmp
 echo "java -version"
 java -version
 
+# Cleanup invalid version file (e.g., if it contains auth prompts)
+if [ -f "/home/container/.version" ]; then
+    if ! grep -qE '^[0-9]{4}\.[0-9]{2}\.[0-9]{2}-[a-f0-9]+' "/home/container/.version"; then
+        msg YELLOW "Warning: Invalid .version content detected; removing file"
+        rm -f "/home/container/.version"
+    fi
+fi
+
 # Hytale Downloader Configuration
 DOWNLOADER_URL="https://downloader.hytale.com/hytale-downloader.zip"
 DOWNLOADER_BIN="${DOWNLOADER_BIN:-/home/container/hytale-downloader}"
@@ -140,7 +148,7 @@ check_for_updates() {
 
     # Get current game version
     CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null \
-        | grep -v -E "Please visit|Path to credentials file" \
+        | grep -v -E "Please visit|Path to credentials file|Authorization code:" \
         | head -1)
 
     if [ -z "$CURRENT_VERSION" ]; then
@@ -180,7 +188,9 @@ download_hytale() {
     # Check local version
     LOCAL_VERSION=""
     if [ -f "/home/container/.version" ]; then
-        LOCAL_VERSION=$(cat "/home/container/.version" 2>/dev/null)
+        # Read only a valid version line, ignore any accidental prompt leftovers
+        LOCAL_VERSION=$(grep -E '^[0-9]{4}\.[0-9]{2}\.[0-9]{2}-[a-f0-9]+' -m1 \
+            "/home/container/.version" 2>/dev/null)
     fi
 
     msg CYAN "  Local version: ${LOCAL_VERSION:-none installed}"
@@ -188,7 +198,7 @@ download_hytale() {
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
     REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null \
-        | grep -v -E "Please visit|Path to credentials file" \
+        | grep -v -E "Please visit|Path to credentials file|Authorization code:" \
         | head -1)
 
     if [ -z "$REMOTE_VERSION" ]; then
