@@ -377,7 +377,7 @@ manage_psaver() {
 }
 
 # Manage Performance Saver plugin
-if [ "$PSAVER" = "1" ] || [ -f "$PSAVER_PLUGINS_DIR"/* ]; then
+if [ "$PSAVER" = "1" ] || [ -n "$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -name "*.jar*" -type f 2>/dev/null | head -1)" ]; then
     manage_psaver || true
 fi
 
