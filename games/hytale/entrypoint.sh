@@ -62,29 +62,11 @@ DOWNLOADER_ARGS=()
 if [ -n "$CREDENTIALS_PATH" ] && [ -f "$CREDENTIALS_PATH" ]; then
     DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
 fi
-DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-60}
-TIMEOUT_BIN="$(command -v timeout || true)"
-
-run_with_timeout() {
-    if [ "$DOWNLOADER_TIMEOUT" -gt 0 ] && [ -n "$TIMEOUT_BIN" ]; then
-        "$TIMEOUT_BIN" "$DOWNLOADER_TIMEOUT" "$@"
-    else
-        "$@"
-    fi
-}
-
-run_no_timeout() {
-    "$@"
-}
-
-contains_auth_prompt() {
-    echo "$1" | grep -q "Please visit the following URL to authenticate"
-}
 
 # Check for downloader updates first thing
 if [ -f "$DOWNLOADER_BIN" ]; then
     msg BLUE "[startup] Checking for downloader updates..."
-    if run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
+    if "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
         msg GREEN "  ✓ Downloader is up to date"
     else
         msg YELLOW "  Note: Downloader update check completed"
@@ -143,14 +125,7 @@ check_for_updates() {
     fi
 
     # Get current game version
-    local VERSION_OUTPUT
-    VERSION_OUTPUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null)
-    if [ -z "$VERSION_OUTPUT" ]; then
-        msg YELLOW "Warning: Could not determine game version"
-        return 1
-    fi
-
-    CURRENT_VERSION=$(echo "$VERSION_OUTPUT" | head -1)
+    CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null | head -1)
 
     if [ -z "$CURRENT_VERSION" ]; then
         msg YELLOW "Warning: Could not determine game version"
@@ -182,22 +157,7 @@ download_hytale() {
 
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
-    local REMOTE_OUT
-    REMOTE_OUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>&1)
-    if contains_auth_prompt "$REMOTE_OUT"; then
-        echo "$REMOTE_OUT" | sed "s/.*/  ${CYAN}&${NC}/"
-        msg RED "Authorization required. Complete the device login above, then either:"
-        msg RED "  - rerun with AUTO_UPDATE=1 after login, or"
-        msg RED "  - provide a saved credentials JSON via CREDENTIALS_PATH."
-        return 1
-    fi
-
-    if [ -z "$REMOTE_OUT" ]; then
-        msg RED "Error: Could not determine remote version"
-        return 1
-    fi
-
-    REMOTE_VERSION=$(echo "$REMOTE_OUT" | head -1)
+    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null | head -1)
 
     if [ -z "$REMOTE_VERSION" ]; then
         msg RED "Error: Could not determine remote version"
@@ -221,16 +181,7 @@ download_hytale() {
     mkdir -p "$DOWNLOAD_DIR"
 
     # Run downloader inside download dir so it names the zip itself
-    local DOWNLOAD_LOG
-    DOWNLOAD_LOG=$(cd "$DOWNLOAD_DIR" && run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1)
-    echo "$DOWNLOAD_LOG" | sed "s/.*/  ${CYAN}&${NC}/"
-    if contains_auth_prompt "$DOWNLOAD_LOG"; then
-        msg RED "Authorization required. Complete the device login above and rerun (or supply credentials JSON)."
-        rm -rf "$DOWNLOAD_DIR"
-        return 1
-    fi
-
-    if [ -z "$DOWNLOAD_LOG" ]; then
+    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
