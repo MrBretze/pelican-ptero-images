@@ -59,6 +59,8 @@ DOWNLOADER_ARGS=()
 if [ -n "$CREDENTIALS_PATH" ]; then
     DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
 fi
+AUTO_DEVICE_AUTH=${AUTO_DEVICE_AUTH:-0}
+AUTH_DELAY=${AUTH_DELAY:-5}
 
 # Check for downloader updates first thing
 if [ -f "$DOWNLOADER_BIN" ]; then
@@ -257,8 +259,54 @@ fi
 # replacing the values.
 PARSED=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g' | eval echo "$(cat -)")
 
-# Display the command we're running in the output, and then execute it with eval
-printf "\033[1m\033[33mcontainer~ \033[0m"
-echo "$PARSED"
-# shellcheck disable=SC2086
-exec env ${PARSED}
+if [ "$AUTO_DEVICE_AUTH" = "1" ]; then
+    msg CYAN "[auth] Auto device auth enabled"
+
+    # Start the server as a coprocess to inject the auth command and still mirror all logs
+    coproc SERVER_PROC { eval "exec env ${PARSED}"; }
+    SERVER_PID=${SERVER_PROC_PID}
+
+    # Forward user input to the server so interactive commands still work
+    {
+        while IFS= read -r user_input; do
+            echo "$user_input" >&${SERVER_PROC[1]} || break
+        done
+    } &
+    STDIN_FWD_PID=$!
+
+    AUTH_PATTERN='[A-Z0-9]\{4\}-[A-Z0-9]\{4\}'
+
+    # Stream server output, mirror to console, and surface the device code when it appears
+    {
+        while IFS= read -r line <&${SERVER_PROC[0]}; do
+            printf "%s\n" "$line"
+            if echo "$line" | grep -oE "$AUTH_PATTERN" >/dev/null 2>&1; then
+                CODE=$(echo "$line" | grep -oE "$AUTH_PATTERN" | head -1)
+                msg GREEN "[auth] Device code detected: $CODE"
+                msg CYAN "[auth] Open https://accounts.hytale.com/device and enter the code"
+            fi
+        done
+    } &
+    OUT_FWD_PID=$!
+
+    # Trigger device auth shortly after startup
+    (
+        sleep "$AUTH_DELAY"
+        echo "/auth login device" >&${SERVER_PROC[1]} 2>/dev/null || true
+    ) &
+
+    # Wait for the server to exit
+    wait "$SERVER_PID"
+    EXIT_CODE=$?
+
+    # Cleanup background helpers
+    kill "$STDIN_FWD_PID" "$OUT_FWD_PID" 2>/dev/null || true
+
+    exit "$EXIT_CODE"
+else
+    # Display the command we're running in the output, and then execute it with eval
+    printf "\033[1m\033[33mcontainer~ \033[0m"
+    echo "$PARSED"
+    # shellcheck disable=SC2086
+    exec env ${PARSED}
+fi
