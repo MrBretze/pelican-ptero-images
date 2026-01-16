@@ -157,7 +157,7 @@ download_hytale() {
 
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
-    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null | head -1)
+    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null | grep -v "Please visit" | head -1)
 
     if [ -z "$REMOTE_VERSION" ]; then
         msg RED "Error: Could not determine remote version"
