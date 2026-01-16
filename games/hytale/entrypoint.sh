@@ -229,6 +229,10 @@ download_hytale() {
     rm -rf "$DOWNLOAD_DIR"
 
     msg GREEN "✓ Hytale server updated to version $REMOTE_VERSION"
+
+    # Clean up entire temp directory after successful installation
+    rm -rf /home/container/.tmp
+
     return 0
 }
 
