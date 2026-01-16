@@ -65,6 +65,16 @@ fi
 DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-20}
 TIMEOUT_BIN="$(command -v timeout || true)"
 
+check_downloader_reachable() {
+    # Quick availability probe to fail fast if CDN/host not reachable
+    if ! wget --spider -q -T "$DOWNLOADER_TIMEOUT" -t 2 "$DOWNLOADER_URL"; then
+        msg RED "Error: Downloader URL not reachable ($DOWNLOADER_URL)"
+        msg RED "Check network/connectivity or try again later."
+        return 1
+    fi
+    return 0
+}
+
 # Runs the downloader with an optional timeout and returns stdout for further processing
 run_downloader() {
     local description="$1"
@@ -150,6 +160,10 @@ check_for_updates() {
         fi
     fi
 
+    if ! check_downloader_reachable; then
+        return 1
+    fi
+
     # Get current game version
     local VERSION_OUTPUT RC
     VERSION_OUTPUT=$(run_downloader "Version check" -print-version -skip-update-check)
@@ -179,6 +193,10 @@ download_hytale() {
             msg RED "Error: Failed to install Hytale Downloader"
             return 1
         fi
+    fi
+
+    if ! check_downloader_reachable; then
+        return 1
     fi
 
     # Check local version
