@@ -62,7 +62,7 @@ DOWNLOADER_ARGS=()
 if [ -n "$CREDENTIALS_PATH" ] && [ -f "$CREDENTIALS_PATH" ]; then
     DOWNLOADER_ARGS+=("-credentials-path" "$CREDENTIALS_PATH")
 fi
-DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-300}
+DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-60}
 TIMEOUT_BIN="$(command -v timeout || true)"
 
 run_with_timeout() {
@@ -186,10 +186,10 @@ download_hytale() {
     REMOTE_OUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>&1)
     if contains_auth_prompt "$REMOTE_OUT"; then
         echo "$REMOTE_OUT" | sed "s/.*/  ${CYAN}&${NC}/"
-        msg YELLOW "Waiting for OAuth device login..."
-        run_no_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"
-        # After auth, try once more to capture the version quickly
-        REMOTE_OUT=$(run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null)
+        msg RED "Authorization required. Complete the device login above, then either:"
+        msg RED "  - rerun with AUTO_UPDATE=1 after login, or"
+        msg RED "  - provide a saved credentials JSON via CREDENTIALS_PATH."
+        return 1
     fi
 
     if [ -z "$REMOTE_OUT" ]; then
@@ -225,9 +225,9 @@ download_hytale() {
     DOWNLOAD_LOG=$(cd "$DOWNLOAD_DIR" && run_with_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1)
     echo "$DOWNLOAD_LOG" | sed "s/.*/  ${CYAN}&${NC}/"
     if contains_auth_prompt "$DOWNLOAD_LOG"; then
-        msg YELLOW "Waiting for OAuth device login to complete..."
-        DOWNLOAD_LOG=$(cd "$DOWNLOAD_DIR" && run_no_timeout "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1)
-        echo "$DOWNLOAD_LOG" | sed "s/.*/  ${CYAN}&${NC}/"
+        msg RED "Authorization required. Complete the device login above and rerun (or supply credentials JSON)."
+        rm -rf "$DOWNLOAD_DIR"
+        return 1
     fi
 
     if [ -z "$DOWNLOAD_LOG" ]; then
