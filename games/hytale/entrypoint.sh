@@ -65,6 +65,27 @@ fi
 DOWNLOADER_TIMEOUT=${DOWNLOADER_TIMEOUT:-20}
 TIMEOUT_BIN="$(command -v timeout || true)"
 
+# Runs the downloader with an optional timeout and returns stdout for further processing
+run_downloader() {
+    local description="$1"
+    shift
+
+    local output rc
+    if [ -n "$TIMEOUT_BIN" ]; then
+        output=$("$TIMEOUT_BIN" "$DOWNLOADER_TIMEOUT" "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" "$@" 2>&1)
+        rc=$?
+        if [ "$rc" = "124" ]; then
+            msg RED "Error: $description timed out after ${DOWNLOADER_TIMEOUT}s"
+        fi
+    else
+        output=$("$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" "$@" 2>&1)
+        rc=$?
+    fi
+
+    echo "$output"
+    return "$rc"
+}
+
 # Check for downloader updates first thing
 if [ -f "$DOWNLOADER_BIN" ]; then
     msg BLUE "[startup] Checking for downloader updates..."
@@ -116,27 +137,6 @@ install_downloader() {
     # Cleanup
     rm -rf "$TEMP_DIR"
     return 0
-}
-
-run_downloader() {
-    # Runs the downloader with an optional timeout and returns stdout for further processing
-    local description="$1"
-    shift
-
-    local output rc
-    if [ -n "$TIMEOUT_BIN" ]; then
-        output=$("$TIMEOUT_BIN" "$DOWNLOADER_TIMEOUT" "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" "$@" 2>&1)
-        rc=$?
-        if [ "$rc" = "124" ]; then
-            msg RED "Error: $description timed out after ${DOWNLOADER_TIMEOUT}s"
-        fi
-    else
-        output=$("$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" "$@" 2>&1)
-        rc=$?
-    fi
-
-    echo "$output"
-    return "$rc"
 }
 
 # Check for updates
