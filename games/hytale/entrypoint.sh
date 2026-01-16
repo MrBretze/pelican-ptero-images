@@ -1,4 +1,5 @@
 #!/bin/bash
+set -o pipefail
 
 # Default the TZ environment variable to UTC.
 TZ=${TZ:-UTC}
@@ -62,10 +63,42 @@ fi
 AUTO_DEVICE_AUTH=${AUTO_DEVICE_AUTH:-0}
 AUTH_DELAY=${AUTH_DELAY:-5}
 
+# Run downloader, surface device auth prompts, and forward output
+run_downloader_capture() {
+    local args=("${DOWNLOADER_ARGS[@]}" "$@")
+    local tmp
+    tmp=$(mktemp)
+
+    if ! "$DOWNLOADER_BIN" "${args[@]}" | tee "$tmp"; then
+        local rc=$?
+        cat "$tmp" >&2
+        rm -f "$tmp"
+        return "$rc"
+    fi
+
+    # Detect device auth flow for the downloader itself
+    if grep -q "oauth.accounts.hytale.com/oauth2/device/verify" "$tmp"; then
+        local code
+        code=$(grep -Eo 'user_code=[A-Za-z0-9]+' "$tmp" | head -1 | cut -d= -f2)
+        if [ -z "$code" ]; then
+            code=$(grep -Eo 'Authorization code: [A-Za-z0-9]+' "$tmp" | awk '{print $3}' | head -1)
+        fi
+        msg RED "[auth-download] Downloader authorization required"
+        msg GREEN "[auth-download] Code: ${code:-<unbekannt>}"
+        msg CYAN "[auth-download] Visit https://oauth.accounts.hytale.com/oauth2/device/verify and enter the code"
+        rm -f "$tmp"
+        return 99
+    fi
+
+    cat "$tmp"
+    rm -f "$tmp"
+    return 0
+}
+
 # Check for downloader updates first thing
 if [ -f "$DOWNLOADER_BIN" ]; then
     msg BLUE "[startup] Checking for downloader updates..."
-    if "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
+    if run_downloader_capture -check-update 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"; then
         msg GREEN "  ✓ Downloader is up to date"
     else
         msg YELLOW "  Note: Downloader update check completed"
@@ -124,7 +157,18 @@ check_for_updates() {
     fi
 
     # Get current game version with timeout
-    CURRENT_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -print-version -skip-update-check 2>/dev/null | head -1)
+    local VERSION_OUTPUT RC
+    VERSION_OUTPUT=$(run_downloader_capture -print-version -skip-update-check 2>/dev/null)
+    RC=$?
+    if [ "$RC" = "99" ]; then
+        return 1
+    fi
+    if [ "$RC" != "0" ]; then
+        msg YELLOW "Warning: Could not determine game version"
+        return 1
+    fi
+
+    CURRENT_VERSION=$(echo "$VERSION_OUTPUT" | head -1)
 
     if [ -z "$CURRENT_VERSION" ]; then
         msg YELLOW "Warning: Could not determine game version"
@@ -156,7 +200,18 @@ download_hytale() {
 
     # Get remote version without downloading
     msg BLUE "[update 1/3] Fetching remote version..."
-    REMOTE_VERSION=$(timeout 10 "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null | head -1)
+    local REMOTE_OUT REMOTE_RC
+    REMOTE_OUT=$(run_downloader_capture -patchline "$PATCHLINE" -print-version -skip-update-check 2>/dev/null)
+    REMOTE_RC=$?
+    if [ "$REMOTE_RC" = "99" ]; then
+        return 1
+    fi
+    if [ "$REMOTE_RC" != "0" ]; then
+        msg RED "Error: Could not determine remote version"
+        return 1
+    fi
+
+    REMOTE_VERSION=$(echo "$REMOTE_OUT" | head -1)
 
     if [ -z "$REMOTE_VERSION" ]; then
         msg RED "Error: Could not determine remote version"
@@ -180,7 +235,12 @@ download_hytale() {
     mkdir -p "$DOWNLOAD_DIR"
 
     # Run downloader inside download dir so it names the zip itself
-    if ! (cd "$DOWNLOAD_DIR" && "$DOWNLOADER_BIN" "${DOWNLOADER_ARGS[@]}" -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
+    if ! (cd "$DOWNLOAD_DIR" && run_downloader_capture -patchline "$PATCHLINE" -skip-update-check 2>&1 | sed "s/.*/  ${CYAN}&${NC}/"); then
+        local DL_RC=$?
+        if [ "$DL_RC" = "99" ]; then
+            rm -rf "$DOWNLOAD_DIR"
+            return 1
+        fi
         msg RED "Error: Hytale Downloader failed"
         rm -rf "$DOWNLOAD_DIR"
         return 1
