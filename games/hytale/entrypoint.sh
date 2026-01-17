@@ -320,7 +320,7 @@ manage_psaver() {
         msg BLUE "[plugin] Checking Performance Saver plugin..."
 
         # Check if a jar matching the pattern exists (enabled)
-        EXISTING_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -name "$PSAVER_JAR_PATTERN" ! -name "*.disabled" -type f 2>/dev/null | head -n 1)
+        EXISTING_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -type f -name "*.jar" ! -name "*.disabled" 2>/dev/null | grep -i "performance\|psaver\|nitrado" | head -n 1)
 
         if [ -n "$EXISTING_JAR" ]; then
             msg GREEN "  ✓ Performance Saver already installed and enabled"
@@ -328,7 +328,7 @@ manage_psaver() {
         fi
 
         # Check if a disabled version exists
-        DISABLED_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -name "${PSAVER_JAR_PATTERN}.disabled" -type f 2>/dev/null | head -n 1)
+        DISABLED_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -type f -name "*.jar.disabled" 2>/dev/null | grep -i "performance\|psaver\|nitrado" | head -n 1)
 
         if [ -n "$DISABLED_JAR" ]; then
             msg BLUE "  Re-enabling Performance Saver..."
@@ -352,26 +352,30 @@ manage_psaver() {
             return 1
         fi
 
-        if ! wget -O "$TEMP_PSAVER_DIR/plugin.jar" "$DOWNLOAD_URL" 2>/dev/null; then
+        # Extract filename from URL
+        PLUGIN_FILENAME=$(basename "$DOWNLOAD_URL")
+
+        if ! wget -O "$TEMP_PSAVER_DIR/$PLUGIN_FILENAME" "$DOWNLOAD_URL" 2>/dev/null; then
             msg RED "Error: Failed to download Performance Saver plugin"
             rm -rf "$TEMP_PSAVER_DIR"
             return 1
         fi
 
         # Copy to mods directory
-        cp "$TEMP_PSAVER_DIR/plugin.jar" "$PSAVER_PLUGINS_DIR/"
+        cp "$TEMP_PSAVER_DIR/$PLUGIN_FILENAME" "$PSAVER_PLUGINS_DIR/"
         rm -rf "$TEMP_PSAVER_DIR"
-        msg GREEN "  ✓ Performance Saver plugin installed"
+        msg GREEN "  ✓ Performance Saver plugin installed ($PLUGIN_FILENAME)"
         return 0
 
     else
         # PSAVER=0: Disable the plugin if it exists
-        EXISTING_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -name "$PSAVER_JAR_PATTERN" ! -name "*.disabled" -type f 2>/dev/null | head -n 1)
+        EXISTING_JAR=$(find "$PSAVER_PLUGINS_DIR" -maxdepth 1 -type f -name "*.jar" ! -name "*.disabled" 2>/dev/null | grep -i "performance\|psaver\|nitrado" | head -n 1)
 
         if [ -n "$EXISTING_JAR" ]; then
             msg BLUE "[plugin] Disabling Performance Saver..."
+            JAR_NAME=$(basename "$EXISTING_JAR")
             mv "$EXISTING_JAR" "${EXISTING_JAR}.disabled"
-            msg GREEN "  ✓ Performance Saver disabled"
+            msg GREEN "  ✓ Performance Saver disabled ($JAR_NAME → $JAR_NAME.disabled)"
         fi
     fi
 }
