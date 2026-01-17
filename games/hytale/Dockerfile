@@ -1,31 +1,32 @@
-FROM        --platform=$TARGETOS/$TARGETARCH eclipse-temurin:25-jdk-noble
+FROM        --platform=$TARGETOS/$TARGETARCH amazoncorretto:25
 
-LABEL       author="Michael Parker" maintainer="parker@pelican.dev"
+LABEL       author="Michael Parker and MrBretzel" maintainer="parker@pelican.dev"
 
 LABEL       org.opencontainers.image.source="https://github.com/pelican-eggs/yolks"
 LABEL       org.opencontainers.image.licenses=MIT
 
-RUN         apt update -y \
-            && apt install -y \
-                curl \
-                wget \
-                lsof \
-                ca-certificates \
-                openssl \
-                git \
-                tar \
-                sqlite3 \
-                fontconfig \
-                tzdata \
-                iproute2 \
-                libfreetype6 \
-                tini \
-                zip \
-                unzip \
-                jq \
-                dbus \
-            && apt clean \
-            && rm -rf /var/lib/apt/lists/*
+RUN dnf update -y \
+ && dnf install -y \
+      ca-certificates \
+      openssl \
+      git \
+      tar \
+      sqlite \
+      fontconfig \
+      freetype \
+      freetype-devel \
+      lsof \
+      tzdata \
+      iproute \
+      gcc \
+      gcc-c++ \
+      automake \
+      make \
+      libtool \
+      libstdc++ \
+ && dnf clean all \
+ && rm -rf /var/cache/dnf \
+ && useradd -m -d /home/container container
 
 
 ## configure locale
@@ -36,12 +37,13 @@ ENV         LANGUAGE en_US:en
 ENV         LC_ALL en_US.UTF-8
 
 ## Setup user and working directory
-RUN         useradd -m -d /home/container -s /bin/bash container
-USER        container
-ENV         USER=container HOME=/home/container
-WORKDIR     /home/container
+ENV LC_ALL=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
 
-STOPSIGNAL SIGINT
+USER container
+ENV USER=container HOME=/home/container
+WORKDIR /home/container
 
 COPY        --chown=container:container ./entrypoint.sh /entrypoint.sh
 RUN         chmod +x /entrypoint.sh
